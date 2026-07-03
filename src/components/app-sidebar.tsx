@@ -1,5 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Building2, LayoutDashboard, Upload, Users, LogOut } from "lucide-react";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { Building2, LayoutDashboard, Upload, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,24 +13,25 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin } from "@/hooks/use-auth";
+import { lockSite } from "@/lib/gate.functions";
 import { toast } from "sonner";
 
 export function AppSidebar() {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
-  const isAdmin = useIsAdmin();
-  const isActive = (p: string) => currentPath === p || currentPath.startsWith(p + "/");
+  const router = useRouter();
+  const lock = useServerFn(lockSite);
+  const isActive = (p: string) =>
+    currentPath === p || currentPath.startsWith(p + "/");
 
   const items = [
     { title: "Condomínios", url: "/dashboard", icon: LayoutDashboard },
     { title: "Importar", url: "/importar", icon: Upload },
-    ...(isAdmin ? [{ title: "Utilizadores", url: "/utilizadores", icon: Users }] : []),
-  ];
+  ] as const;
 
   async function signOut() {
-    await supabase.auth.signOut();
+    await lock();
     toast.success("Sessão terminada");
+    await router.navigate({ to: "/unlock" });
   }
 
   return (
