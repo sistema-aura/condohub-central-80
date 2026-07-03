@@ -133,9 +133,10 @@ function GeralTab({ condId }: { condId: string }) {
 
   async function save() {
     const { error } = await supabase.from("condominios").update({
-      nome: form.nome, numero_interno: form.numero_interno, morada: form.morada,
-      codigo_postal: form.codigo_postal, localidade: form.localidade,
-      ativo: form.ativo, observacoes: form.observacoes,
+      nome: form.nome as string, numero_interno: form.numero_interno as string | null,
+      morada: form.morada as string | null, codigo_postal: form.codigo_postal as string | null,
+      localidade: form.localidade as string | null, ativo: !!form.ativo,
+      observacoes: form.observacoes as string | null,
     }).eq("id", condId);
     if (error) return toast.error(error.message);
     toast.success("Guardado");
