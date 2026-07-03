@@ -14,16 +14,328 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      condominios: {
+        Row: {
+          ativo: boolean
+          codigo_postal: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          localidade: string | null
+          morada: string | null
+          nome: string
+          numero_interno: string | null
+          observacoes: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          codigo_postal?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          localidade?: string | null
+          morada?: string | null
+          nome: string
+          numero_interno?: string | null
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          codigo_postal?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          localidade?: string | null
+          morada?: string | null
+          nome?: string
+          numero_interno?: string | null
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contactos: {
+        Row: {
+          condominio_id: string
+          created_at: string
+          email: string | null
+          funcao: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          condominio_id: string
+          created_at?: string
+          email?: string | null
+          funcao?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          condominio_id?: string
+          created_at?: string
+          email?: string | null
+          funcao?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contactos_condominio_id_fkey"
+            columns: ["condominio_id"]
+            isOneToOne: false
+            referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contas_bancarias: {
+        Row: {
+          banco: string | null
+          condominio_id: string
+          created_at: string
+          iban: string | null
+          id: string
+          numero_conta: string | null
+          observacoes_acesso: string | null
+          site_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          banco?: string | null
+          condominio_id: string
+          created_at?: string
+          iban?: string | null
+          id?: string
+          numero_conta?: string | null
+          observacoes_acesso?: string | null
+          site_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          banco?: string | null
+          condominio_id?: string
+          created_at?: string
+          iban?: string | null
+          id?: string
+          numero_conta?: string | null
+          observacoes_acesso?: string | null
+          site_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_bancarias_condominio_id_fkey"
+            columns: ["condominio_id"]
+            isOneToOne: true
+            referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos_eletricidade: {
+        Row: {
+          companhia: string | null
+          condominio_id: string
+          cpe: string | null
+          created_at: string
+          data_inicio: string | null
+          id: string
+          numero_contrato: string | null
+          observacoes: string | null
+          titular: string | null
+          updated_at: string
+        }
+        Insert: {
+          companhia?: string | null
+          condominio_id: string
+          cpe?: string | null
+          created_at?: string
+          data_inicio?: string | null
+          id?: string
+          numero_contrato?: string | null
+          observacoes?: string | null
+          titular?: string | null
+          updated_at?: string
+        }
+        Update: {
+          companhia?: string | null
+          condominio_id?: string
+          cpe?: string | null
+          created_at?: string
+          data_inicio?: string | null
+          id?: string
+          numero_contrato?: string | null
+          observacoes?: string | null
+          titular?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_eletricidade_condominio_id_fkey"
+            columns: ["condominio_id"]
+            isOneToOne: true
+            referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos: {
+        Row: {
+          condominio_id: string
+          created_at: string
+          id: string
+          mime_type: string | null
+          nome: string
+          storage_path: string
+          tamanho: number | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          condominio_id: string
+          created_at?: string
+          id?: string
+          mime_type?: string | null
+          nome: string
+          storage_path: string
+          tamanho?: number | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          condominio_id?: string
+          created_at?: string
+          id?: string
+          mime_type?: string | null
+          nome?: string
+          storage_path?: string
+          tamanho?: number | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_condominio_id_fkey"
+            columns: ["condominio_id"]
+            isOneToOne: false
+            referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          nome: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          nome?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string | null
+        }
+        Relationships: []
+      }
+      seguros: {
+        Row: {
+          companhia: string | null
+          condominio_id: string
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          id: string
+          numero_apolice: string | null
+          observacoes: string | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          companhia?: string | null
+          condominio_id: string
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          numero_apolice?: string | null
+          observacoes?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          companhia?: string | null
+          condominio_id?: string
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          numero_apolice?: string | null
+          observacoes?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seguros_condominio_id_fkey"
+            columns: ["condominio_id"]
+            isOneToOne: false
+            referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "colaborador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +462,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "colaborador"],
+    },
   },
 } as const
