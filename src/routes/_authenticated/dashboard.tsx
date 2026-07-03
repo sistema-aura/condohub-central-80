@@ -24,8 +24,8 @@ type CondRow = {
   morada: string | null;
   localidade: string | null;
   ativo: boolean;
-  contratos_eletricidade: { companhia: string | null }[];
-  contas_bancarias: { banco: string | null }[];
+  contratos_eletricidade: { companhia: string | null } | null;
+  contas_bancarias: { banco: string | null } | null;
 };
 
 function Dashboard() {
