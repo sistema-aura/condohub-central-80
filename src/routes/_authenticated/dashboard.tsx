@@ -47,11 +47,11 @@ function Dashboard() {
   });
 
   const bancos = useMemo(
-    () => Array.from(new Set(data.flatMap((c) => c.contas_bancarias.map((b) => b.banco)).filter(Boolean))) as string[],
+    () => Array.from(new Set(data.map((c) => c.contas_bancarias?.banco).filter(Boolean))) as string[],
     [data],
   );
   const companhias = useMemo(
-    () => Array.from(new Set(data.flatMap((c) => c.contratos_eletricidade.map((e) => e.companhia)).filter(Boolean))) as string[],
+    () => Array.from(new Set(data.map((c) => c.contratos_eletricidade?.companhia).filter(Boolean))) as string[],
     [data],
   );
 
@@ -63,8 +63,8 @@ function Dashboard() {
     }
     if (estado === "ativo" && !c.ativo) return false;
     if (estado === "inativo" && c.ativo) return false;
-    if (banco !== "todos" && !c.contas_bancarias.some((b) => b.banco === banco)) return false;
-    if (companhia !== "todos" && !c.contratos_eletricidade.some((e) => e.companhia === companhia)) return false;
+    if (banco !== "todos" && c.contas_bancarias?.banco !== banco) return false;
+    if (companhia !== "todos" && c.contratos_eletricidade?.companhia !== companhia) return false;
     return true;
   });
 
