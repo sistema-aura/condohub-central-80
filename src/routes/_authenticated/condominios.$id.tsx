@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Trash2, Save, Plus, Download, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin } from "@/hooks/use-auth";
+// Shared-password gate: everyone signed in has full access.
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +26,7 @@ function CondominioDetalhe() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const isAdmin = useIsAdmin();
+  const isAdmin = true;
 
   const { data: cond, isLoading } = useQuery({
     queryKey: ["condominio", id],

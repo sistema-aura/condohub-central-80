@@ -9,18 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
+import { Route as UnlockRouteImport } from './routes/unlock'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedUtilizadoresRouteImport } from './routes/_authenticated/utilizadores'
 import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated/importar'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCondominiosNovoRouteImport } from './routes/_authenticated/condominios.novo'
 import { Route as AuthenticatedCondominiosIdRouteImport } from './routes/_authenticated/condominios.$id'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const UnlockRoute = UnlockRouteImport.update({
+  id: '/unlock',
+  path: '/unlock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -32,12 +31,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedUtilizadoresRoute =
-  AuthenticatedUtilizadoresRouteImport.update({
-    id: '/utilizadores',
-    path: '/utilizadores',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedImportarRoute = AuthenticatedImportarRouteImport.update({
   id: '/importar',
   path: '/importar',
@@ -63,19 +56,17 @@ const AuthenticatedCondominiosIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/unlock': typeof UnlockRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/importar': typeof AuthenticatedImportarRoute
-  '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/condominios/$id': typeof AuthenticatedCondominiosIdRoute
   '/condominios/novo': typeof AuthenticatedCondominiosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/unlock': typeof UnlockRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/importar': typeof AuthenticatedImportarRoute
-  '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/condominios/$id': typeof AuthenticatedCondominiosIdRoute
   '/condominios/novo': typeof AuthenticatedCondominiosNovoRoute
 }
@@ -83,10 +74,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/unlock': typeof UnlockRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/importar': typeof AuthenticatedImportarRoute
-  '/_authenticated/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/_authenticated/condominios/$id': typeof AuthenticatedCondominiosIdRoute
   '/_authenticated/condominios/novo': typeof AuthenticatedCondominiosNovoRoute
 }
@@ -94,29 +84,26 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/auth'
+    | '/unlock'
     | '/dashboard'
     | '/importar'
-    | '/utilizadores'
     | '/condominios/$id'
     | '/condominios/novo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/auth'
+    | '/unlock'
     | '/dashboard'
     | '/importar'
-    | '/utilizadores'
     | '/condominios/$id'
     | '/condominios/novo'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/auth'
+    | '/unlock'
     | '/_authenticated/dashboard'
     | '/_authenticated/importar'
-    | '/_authenticated/utilizadores'
     | '/_authenticated/condominios/$id'
     | '/_authenticated/condominios/novo'
   fileRoutesById: FileRoutesById
@@ -124,16 +111,16 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  UnlockRoute: typeof UnlockRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/unlock': {
+      id: '/unlock'
+      path: '/unlock'
+      fullPath: '/unlock'
+      preLoaderRoute: typeof UnlockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -149,13 +136,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/utilizadores': {
-      id: '/_authenticated/utilizadores'
-      path: '/utilizadores'
-      fullPath: '/utilizadores'
-      preLoaderRoute: typeof AuthenticatedUtilizadoresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/importar': {
       id: '/_authenticated/importar'
@@ -191,7 +171,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedImportarRoute: typeof AuthenticatedImportarRoute
-  AuthenticatedUtilizadoresRoute: typeof AuthenticatedUtilizadoresRoute
   AuthenticatedCondominiosIdRoute: typeof AuthenticatedCondominiosIdRoute
   AuthenticatedCondominiosNovoRoute: typeof AuthenticatedCondominiosNovoRoute
 }
@@ -199,7 +178,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedImportarRoute: AuthenticatedImportarRoute,
-  AuthenticatedUtilizadoresRoute: AuthenticatedUtilizadoresRoute,
   AuthenticatedCondominiosIdRoute: AuthenticatedCondominiosIdRoute,
   AuthenticatedCondominiosNovoRoute: AuthenticatedCondominiosNovoRoute,
 }
@@ -210,7 +188,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
+  UnlockRoute: UnlockRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
