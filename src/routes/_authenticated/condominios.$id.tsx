@@ -173,7 +173,9 @@ function GeralTab({ condId }: { condId: string }) {
 
 function upsertOne(table: string, condId: string) {
   return async (payload: Record<string, unknown>) => {
-    const { error } = await supabase.from(table as never).upsert(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const client = supabase.from(table as any) as any;
+    const { error } = await client.upsert(
       { ...payload, condominio_id: condId },
       { onConflict: "condominio_id" },
     );
