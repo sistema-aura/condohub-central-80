@@ -150,8 +150,8 @@ function Dashboard() {
                 <TableCell className="font-medium">{c.nome}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{c.morada || "—"}</TableCell>
                 <TableCell className="text-sm">{c.localidade || "—"}</TableCell>
-                <TableCell className="text-sm">{c.contas_bancarias[0]?.banco || "—"}</TableCell>
-                <TableCell className="text-sm">{c.contratos_eletricidade[0]?.companhia || "—"}</TableCell>
+                <TableCell className="text-sm">{c.contas_bancarias?.banco || "—"}</TableCell>
+                <TableCell className="text-sm">{c.contratos_eletricidade?.companhia || "—"}</TableCell>
                 <TableCell>
                   <Badge variant={c.ativo ? "default" : "secondary"}>
                     {c.ativo ? "Ativo" : "Inativo"}
