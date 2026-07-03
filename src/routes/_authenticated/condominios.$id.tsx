@@ -110,7 +110,9 @@ function useEntity<T>(table: string, condId: string, single = true) {
   return useQuery({
     queryKey: [table, condId],
     queryFn: async () => {
-      const q = supabase.from(table as never).select("*").eq("condominio_id", condId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const client = supabase.from(table as any) as any;
+      const q = client.select("*").eq("condominio_id", condId);
       const { data, error } = single ? await q.maybeSingle() : await q.order("created_at");
       if (error) throw error;
       return data as T;
