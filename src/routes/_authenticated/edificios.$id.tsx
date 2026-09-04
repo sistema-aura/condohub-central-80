@@ -116,7 +116,14 @@ function EdificioPage() {
   }, [documentos.data, q, tipo, ordem]);
 
   const guardarDados = useMutation({
-    mutationFn: async (values: Record<string, string | null>) => {
+    mutationFn: async (values: {
+      nome: string;
+      identificacao_interna: string | null;
+      morada: string | null;
+      codigo_postal: string | null;
+      localidade: string | null;
+      observacoes: string | null;
+    }) => {
       const { error } = await supabase.from("edificios").update(values).eq("id", id);
       if (error) throw error;
     },
