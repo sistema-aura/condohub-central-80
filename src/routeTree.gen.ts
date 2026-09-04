@@ -11,10 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated/importar'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedCondominiosNovoRouteImport } from './routes/_authenticated/condominios.novo'
-import { Route as AuthenticatedCondominiosIdRouteImport } from './routes/_authenticated/condominios.$id'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -25,75 +22,32 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedImportarRoute = AuthenticatedImportarRouteImport.update({
-  id: '/importar',
-  path: '/importar',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedCondominiosNovoRoute =
-  AuthenticatedCondominiosNovoRouteImport.update({
-    id: '/condominios/novo',
-    path: '/condominios/novo',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedCondominiosIdRoute =
-  AuthenticatedCondominiosIdRouteImport.update({
-    id: '/condominios/$id',
-    path: '/condominios/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/importar': typeof AuthenticatedImportarRoute
-  '/condominios/$id': typeof AuthenticatedCondominiosIdRoute
-  '/condominios/novo': typeof AuthenticatedCondominiosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/importar': typeof AuthenticatedImportarRoute
-  '/condominios/$id': typeof AuthenticatedCondominiosIdRoute
-  '/condominios/novo': typeof AuthenticatedCondominiosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/importar': typeof AuthenticatedImportarRoute
-  '/_authenticated/condominios/$id': typeof AuthenticatedCondominiosIdRoute
-  '/_authenticated/condominios/novo': typeof AuthenticatedCondominiosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/dashboard'
-    | '/importar'
-    | '/condominios/$id'
-    | '/condominios/novo'
+  fullPaths: '/' | '/dashboard'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/dashboard'
-    | '/importar'
-    | '/condominios/$id'
-    | '/condominios/novo'
-  id:
-    | '__root__'
-    | '/'
-    | '/_authenticated'
-    | '/_authenticated/dashboard'
-    | '/_authenticated/importar'
-    | '/_authenticated/condominios/$id'
-    | '/_authenticated/condominios/novo'
+  to: '/' | '/dashboard'
+  id: '__root__' | '/' | '/_authenticated' | '/_authenticated/dashboard'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,13 +71,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/importar': {
-      id: '/_authenticated/importar'
-      path: '/importar'
-      fullPath: '/importar'
-      preLoaderRoute: typeof AuthenticatedImportarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -131,35 +78,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/condominios/novo': {
-      id: '/_authenticated/condominios/novo'
-      path: '/condominios/novo'
-      fullPath: '/condominios/novo'
-      preLoaderRoute: typeof AuthenticatedCondominiosNovoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/condominios/$id': {
-      id: '/_authenticated/condominios/$id'
-      path: '/condominios/$id'
-      fullPath: '/condominios/$id'
-      preLoaderRoute: typeof AuthenticatedCondominiosIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedImportarRoute: typeof AuthenticatedImportarRoute
-  AuthenticatedCondominiosIdRoute: typeof AuthenticatedCondominiosIdRoute
-  AuthenticatedCondominiosNovoRoute: typeof AuthenticatedCondominiosNovoRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedImportarRoute: AuthenticatedImportarRoute,
-  AuthenticatedCondominiosIdRoute: AuthenticatedCondominiosIdRoute,
-  AuthenticatedCondominiosNovoRoute: AuthenticatedCondominiosNovoRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
