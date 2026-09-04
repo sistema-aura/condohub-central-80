@@ -1,14 +1,9 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { checkUnlocked } from "@/lib/gate.functions";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
-    const { unlocked } = await checkUnlocked();
-    if (!unlocked) throw redirect({ to: "/unlock" });
-  },
   component: AuthenticatedLayout,
 });
 

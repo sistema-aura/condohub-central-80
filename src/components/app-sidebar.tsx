@@ -1,10 +1,8 @@
-import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { Building2, LayoutDashboard, Upload, LogOut } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Building2, LayoutDashboard, Upload } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -13,13 +11,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { lockSite } from "@/lib/gate.functions";
-import { toast } from "sonner";
 
 export function AppSidebar() {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
-  const router = useRouter();
-  const lock = useServerFn(lockSite);
   const isActive = (p: string) =>
     currentPath === p || currentPath.startsWith(p + "/");
 
@@ -27,12 +21,6 @@ export function AppSidebar() {
     { title: "Condomínios", url: "/dashboard", icon: LayoutDashboard },
     { title: "Importar", url: "/importar", icon: Upload },
   ] as const;
-
-  async function signOut() {
-    await lock();
-    toast.success("Sessão terminada");
-    await router.navigate({ to: "/unlock" });
-  }
 
   return (
     <Sidebar collapsible="icon">
@@ -63,16 +51,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut}>
-              <LogOut className="h-4 w-4" />
-              <span>Sair</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }
