@@ -17,8 +17,8 @@ export const createFirstUser = createServerFn({ method: "POST" })
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 255) {
       throw new Error("Email inválido");
     }
-    if (password.length < 8 || password.length > 72) {
-      throw new Error("A password deve ter pelo menos 8 caracteres");
+    if (password.length < 6 || password.length > 72) {
+      throw new Error("A password deve ter pelo menos 6 caracteres");
     }
     return { email, password };
   })
@@ -60,8 +60,8 @@ export const createAppUser = createServerFn({ method: "POST" })
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 255) {
       throw new Error("Email inválido");
     }
-    if (password.length < 8 || password.length > 72) {
-      throw new Error("A password deve ter pelo menos 8 caracteres");
+    if (password.length < 6 || password.length > 72) {
+      throw new Error("A password deve ter pelo menos 6 caracteres");
     }
     return { email, password };
   })

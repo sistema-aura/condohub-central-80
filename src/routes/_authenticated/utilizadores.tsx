@@ -93,7 +93,7 @@ function Utilizadores() {
                 id="pw"
                 type="text"
                 required
-                minLength={8}
+                minLength={6}
                 maxLength={72}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
