@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEdificiosNovoRouteImport } from './routes/_authenticated/edificios.novo'
+import { Route as AuthenticatedEdificiosIdRouteImport } from './routes/_authenticated/edificios.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -40,17 +41,25 @@ const AuthenticatedEdificiosNovoRoute =
     path: '/edificios/novo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEdificiosIdRoute =
+  AuthenticatedEdificiosIdRouteImport.update({
+    id: '/edificios/$id',
+    path: '/edificios/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
 }
 export interface FileRoutesById {
@@ -59,19 +68,21 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/_authenticated/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/edificios/novo'
+  fullPaths: '/' | '/auth' | '/dashboard' | '/edificios/$id' | '/edificios/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/edificios/novo'
+  to: '/' | '/auth' | '/dashboard' | '/edificios/$id' | '/edificios/novo'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/edificios/$id'
     | '/_authenticated/edificios/novo'
   fileRoutesById: FileRoutesById
 }
@@ -118,16 +129,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEdificiosNovoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/edificios/$id': {
+      id: '/_authenticated/edificios/$id'
+      path: '/edificios/$id'
+      fullPath: '/edificios/$id'
+      preLoaderRoute: typeof AuthenticatedEdificiosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedEdificiosIdRoute: typeof AuthenticatedEdificiosIdRoute
   AuthenticatedEdificiosNovoRoute: typeof AuthenticatedEdificiosNovoRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedEdificiosIdRoute: AuthenticatedEdificiosIdRoute,
   AuthenticatedEdificiosNovoRoute: AuthenticatedEdificiosNovoRoute,
 }
 
