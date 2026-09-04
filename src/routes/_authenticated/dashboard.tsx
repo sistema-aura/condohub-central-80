@@ -40,7 +40,7 @@ function Dashboard() {
       const { data, error } = await supabase
         .from("condominios")
         .select("id, nome, numero_interno, morada, localidade, ativo, contratos_eletricidade(companhia), contas_bancarias(banco)")
-        .order("nome");
+        .order("numero_interno");
       if (error) throw error;
       return data as CondRow[];
     },
