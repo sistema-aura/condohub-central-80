@@ -1,8 +1,12 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Building2, LayoutDashboard, Upload } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { Building2, LayoutDashboard, AlertTriangle, Users, LogOut } from "lucide-react";
+
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -14,13 +18,23 @@ import {
 
 export function AppSidebar() {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
-  const isActive = (p: string) =>
-    currentPath === p || currentPath.startsWith(p + "/");
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const isActive = (p: string) => currentPath === p || currentPath.startsWith(p + "/");
 
   const items = [
-    { title: "Condomínios", url: "/dashboard", icon: LayoutDashboard },
-    { title: "Importar", url: "/importar", icon: Upload },
+    { title: "Edifícios", url: "/dashboard", icon: LayoutDashboard },
+    { title: "Alertas", url: "/alertas", icon: AlertTriangle },
+    { title: "Utilizadores", url: "/utilizadores", icon: Users },
   ] as const;
+
+  async function handleSignOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -29,7 +43,7 @@ export function AppSidebar() {
           <div className="rounded-md bg-primary p-1.5 text-primary-foreground">
             <Building2 className="h-4 w-4" />
           </div>
-          <div className="font-semibold text-sm">GestCond</div>
+          <div className="text-sm font-semibold leading-tight">Condomínio Dinâmico</div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -51,6 +65,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleSignOut}>
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

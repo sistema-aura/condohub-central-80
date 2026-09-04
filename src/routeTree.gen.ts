@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedUtilizadoresRouteImport } from './routes/_authenticated/utilizadores'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedEdificiosNovoRouteImport } from './routes/_authenticated/edificios.novo'
@@ -31,6 +32,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedUtilizadoresRoute =
+  AuthenticatedUtilizadoresRouteImport.update({
+    id: '/utilizadores',
+    path: '/utilizadores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
 }
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
 }
@@ -77,6 +86,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/_authenticated/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/_authenticated/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
 }
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/alertas'
     | '/dashboard'
+    | '/utilizadores'
     | '/edificios/$id'
     | '/edificios/novo'
   fileRoutesByTo: FileRoutesByTo
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/alertas'
     | '/dashboard'
+    | '/utilizadores'
     | '/edificios/$id'
     | '/edificios/novo'
   id:
@@ -104,6 +116,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/alertas'
     | '/_authenticated/dashboard'
+    | '/_authenticated/utilizadores'
     | '/_authenticated/edificios/$id'
     | '/_authenticated/edificios/novo'
   fileRoutesById: FileRoutesById
@@ -136,6 +149,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/utilizadores': {
+      id: '/_authenticated/utilizadores'
+      path: '/utilizadores'
+      fullPath: '/utilizadores'
+      preLoaderRoute: typeof AuthenticatedUtilizadoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -171,6 +191,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlertasRoute: typeof AuthenticatedAlertasRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedUtilizadoresRoute: typeof AuthenticatedUtilizadoresRoute
   AuthenticatedEdificiosIdRoute: typeof AuthenticatedEdificiosIdRoute
   AuthenticatedEdificiosNovoRoute: typeof AuthenticatedEdificiosNovoRoute
 }
@@ -178,6 +199,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAlertasRoute: AuthenticatedAlertasRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedUtilizadoresRoute: AuthenticatedUtilizadoresRoute,
   AuthenticatedEdificiosIdRoute: AuthenticatedEdificiosIdRoute,
   AuthenticatedEdificiosNovoRoute: AuthenticatedEdificiosNovoRoute,
 }
