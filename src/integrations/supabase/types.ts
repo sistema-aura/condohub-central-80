@@ -14,17 +14,76 @@ export type Database = {
   }
   public: {
     Tables: {
-      condominios: {
+      documentos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_documento: string | null
+          data_validade: string | null
+          edificio_id: string
+          ficheiro_nome: string | null
+          ficheiro_path: string | null
+          id: string
+          informacao: string | null
+          mime_type: string | null
+          tamanho: number | null
+          tipo: Database["public"]["Enums"]["tipo_documento"]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_documento?: string | null
+          data_validade?: string | null
+          edificio_id: string
+          ficheiro_nome?: string | null
+          ficheiro_path?: string | null
+          id?: string
+          informacao?: string | null
+          mime_type?: string | null
+          tamanho?: number | null
+          tipo?: Database["public"]["Enums"]["tipo_documento"]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_documento?: string | null
+          data_validade?: string | null
+          edificio_id?: string
+          ficheiro_nome?: string | null
+          ficheiro_path?: string | null
+          id?: string
+          informacao?: string | null
+          mime_type?: string | null
+          tamanho?: number | null
+          tipo?: Database["public"]["Enums"]["tipo_documento"]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_edificio_id_fkey"
+            columns: ["edificio_id"]
+            isOneToOne: false
+            referencedRelation: "edificios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edificios: {
         Row: {
           ativo: boolean
           codigo_postal: string | null
           created_at: string
           created_by: string | null
           id: string
+          identificacao_interna: string | null
           localidade: string | null
           morada: string | null
           nome: string
-          numero_interno: string | null
           observacoes: string | null
           updated_at: string
         }
@@ -34,10 +93,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          identificacao_interna?: string | null
           localidade?: string | null
           morada?: string | null
           nome: string
-          numero_interno?: string | null
           observacoes?: string | null
           updated_at?: string
         }
@@ -47,237 +106,14 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          identificacao_interna?: string | null
           localidade?: string | null
           morada?: string | null
           nome?: string
-          numero_interno?: string | null
           observacoes?: string | null
           updated_at?: string
         }
         Relationships: []
-      }
-      contactos: {
-        Row: {
-          condominio_id: string
-          created_at: string
-          email: string | null
-          funcao: string | null
-          id: string
-          nome: string
-          observacoes: string | null
-          telefone: string | null
-          updated_at: string
-        }
-        Insert: {
-          condominio_id: string
-          created_at?: string
-          email?: string | null
-          funcao?: string | null
-          id?: string
-          nome: string
-          observacoes?: string | null
-          telefone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          condominio_id?: string
-          created_at?: string
-          email?: string | null
-          funcao?: string | null
-          id?: string
-          nome?: string
-          observacoes?: string | null
-          telefone?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contactos_condominio_id_fkey"
-            columns: ["condominio_id"]
-            isOneToOne: false
-            referencedRelation: "condominios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contas_bancarias: {
-        Row: {
-          banco: string | null
-          condominio_id: string
-          created_at: string
-          iban: string | null
-          id: string
-          numero_conta: string | null
-          observacoes_acesso: string | null
-          site_url: string | null
-          updated_at: string
-        }
-        Insert: {
-          banco?: string | null
-          condominio_id: string
-          created_at?: string
-          iban?: string | null
-          id?: string
-          numero_conta?: string | null
-          observacoes_acesso?: string | null
-          site_url?: string | null
-          updated_at?: string
-        }
-        Update: {
-          banco?: string | null
-          condominio_id?: string
-          created_at?: string
-          iban?: string | null
-          id?: string
-          numero_conta?: string | null
-          observacoes_acesso?: string | null
-          site_url?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contas_bancarias_condominio_id_fkey"
-            columns: ["condominio_id"]
-            isOneToOne: true
-            referencedRelation: "condominios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contratos_eletricidade: {
-        Row: {
-          companhia: string | null
-          condominio_id: string
-          cpe: string | null
-          created_at: string
-          data_inicio: string | null
-          id: string
-          numero_contrato: string | null
-          observacoes: string | null
-          titular: string | null
-          updated_at: string
-        }
-        Insert: {
-          companhia?: string | null
-          condominio_id: string
-          cpe?: string | null
-          created_at?: string
-          data_inicio?: string | null
-          id?: string
-          numero_contrato?: string | null
-          observacoes?: string | null
-          titular?: string | null
-          updated_at?: string
-        }
-        Update: {
-          companhia?: string | null
-          condominio_id?: string
-          cpe?: string | null
-          created_at?: string
-          data_inicio?: string | null
-          id?: string
-          numero_contrato?: string | null
-          observacoes?: string | null
-          titular?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contratos_eletricidade_condominio_id_fkey"
-            columns: ["condominio_id"]
-            isOneToOne: true
-            referencedRelation: "condominios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      documentos: {
-        Row: {
-          condominio_id: string
-          created_at: string
-          id: string
-          mime_type: string | null
-          nome: string
-          storage_path: string
-          tamanho: number | null
-          uploaded_by: string | null
-        }
-        Insert: {
-          condominio_id: string
-          created_at?: string
-          id?: string
-          mime_type?: string | null
-          nome: string
-          storage_path: string
-          tamanho?: number | null
-          uploaded_by?: string | null
-        }
-        Update: {
-          condominio_id?: string
-          created_at?: string
-          id?: string
-          mime_type?: string | null
-          nome?: string
-          storage_path?: string
-          tamanho?: number | null
-          uploaded_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "documentos_condominio_id_fkey"
-            columns: ["condominio_id"]
-            isOneToOne: false
-            referencedRelation: "condominios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      seguros: {
-        Row: {
-          companhia: string | null
-          condominio_id: string
-          created_at: string
-          data_fim: string | null
-          data_inicio: string | null
-          id: string
-          numero_apolice: string | null
-          observacoes: string | null
-          tipo: string | null
-          updated_at: string
-        }
-        Insert: {
-          companhia?: string | null
-          condominio_id: string
-          created_at?: string
-          data_fim?: string | null
-          data_inicio?: string | null
-          id?: string
-          numero_apolice?: string | null
-          observacoes?: string | null
-          tipo?: string | null
-          updated_at?: string
-        }
-        Update: {
-          companhia?: string | null
-          condominio_id?: string
-          created_at?: string
-          data_fim?: string | null
-          data_inicio?: string | null
-          id?: string
-          numero_apolice?: string | null
-          observacoes?: string | null
-          tipo?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "seguros_condominio_id_fkey"
-            columns: ["condominio_id"]
-            isOneToOne: false
-            referencedRelation: "condominios"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
@@ -287,7 +123,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      tipo_documento:
+        | "luz"
+        | "agua"
+        | "banco"
+        | "elevador"
+        | "seguro"
+        | "outros"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -414,6 +256,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      tipo_documento: ["luz", "agua", "banco", "elevador", "seguro", "outros"],
+    },
   },
 } as const

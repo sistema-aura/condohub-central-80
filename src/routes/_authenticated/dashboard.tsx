@@ -1,167 +1,200 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Plus, Search, Building2, Upload } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Building2, Plus, Search, FileText, AlertTriangle } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { estadoValidade } from "@/lib/documentos";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({
+    meta: [
+      { title: "Edifícios — Condomínio Dinâmico" },
+      { name: "description", content: "Lista de edifícios geridos e respetiva documentação." },
+      { property: "og:title", content: "Edifícios — Condomínio Dinâmico" },
+      { property: "og:description", content: "Lista de edifícios geridos e respetiva documentação." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Dashboard,
 });
 
-type CondRow = {
+type Edificio = {
   id: string;
   nome: string;
-  numero_interno: string | null;
+  identificacao_interna: string | null;
   morada: string | null;
+  codigo_postal: string | null;
   localidade: string | null;
-  ativo: boolean;
-  contratos_eletricidade: { companhia: string | null } | null;
-  contas_bancarias: { banco: string | null } | null;
 };
 
 function Dashboard() {
   const [q, setQ] = useState("");
-  const [estado, setEstado] = useState<string>("todos");
-  const [banco, setBanco] = useState<string>("todos");
-  const [companhia, setCompanhia] = useState<string>("todos");
 
-  const { data = [], isLoading } = useQuery({
-    queryKey: ["condominios-list"],
-    queryFn: async () => {
+  const edificios = useQuery({
+    queryKey: ["edificios"],
+    queryFn: async (): Promise<Edificio[]> => {
       const { data, error } = await supabase
-        .from("condominios")
-        .select("id, nome, numero_interno, morada, localidade, ativo, contratos_eletricidade(companhia), contas_bancarias(banco)")
-        .order("numero_interno");
+        .from("edificios")
+        .select("id, nome, identificacao_interna, morada, codigo_postal, localidade")
+        .order("identificacao_interna", { ascending: true, nullsFirst: false })
+        .order("nome");
       if (error) throw error;
-      return data as CondRow[];
+      return data ?? [];
     },
   });
 
-  const bancos = useMemo(
-    () => Array.from(new Set(data.map((c) => c.contas_bancarias?.banco).filter(Boolean))) as string[],
-    [data],
-  );
-  const companhias = useMemo(
-    () => Array.from(new Set(data.map((c) => c.contratos_eletricidade?.companhia).filter(Boolean))) as string[],
-    [data],
-  );
-
-  const filtered = data.filter((c) => {
-    const s = q.trim().toLowerCase();
-    if (s) {
-      const hay = `${c.nome} ${c.morada ?? ""} ${c.numero_interno ?? ""}`.toLowerCase();
-      if (!hay.includes(s)) return false;
-    }
-    if (estado === "ativo" && !c.ativo) return false;
-    if (estado === "inativo" && c.ativo) return false;
-    if (banco !== "todos" && c.contas_bancarias?.banco !== banco) return false;
-    if (companhia !== "todos" && c.contratos_eletricidade?.companhia !== companhia) return false;
-    return true;
+  const docs = useQuery({
+    queryKey: ["documentos-resumo"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("documentos")
+        .select("id, edificio_id, data_validade");
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
+  const porEdificio = useMemo(() => {
+    const map = new Map<string, { total: number; alertas: number }>();
+    for (const d of docs.data ?? []) {
+      const cur = map.get(d.edificio_id) ?? { total: 0, alertas: 0 };
+      cur.total += 1;
+      const est = estadoValidade(d.data_validade);
+      if (est === "expirado" || est === "a-expirar") cur.alertas += 1;
+      map.set(d.edificio_id, cur);
+    }
+    return map;
+  }, [docs.data]);
+
+  const lista = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    const all = edificios.data ?? [];
+    if (!term) return all;
+    return all.filter((e) =>
+      [e.nome, e.identificacao_interna, e.morada, e.localidade]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(term)),
+    );
+  }, [edificios.data, q]);
+
+  const totalAlertas = useMemo(
+    () => (docs.data ?? []).filter((d) => ["expirado", "a-expirar"].includes(estadoValidade(d.data_validade))).length,
+    [docs.data],
+  );
+
   return (
-    <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div className="mx-auto w-full max-w-6xl p-4 md:p-8 space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-primary" />
-            Condomínios
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {data.length} {data.length === 1 ? "condomínio" : "condomínios"} na base de dados
+          <h1 className="text-2xl font-semibold tracking-tight">Edifícios</h1>
+          <p className="text-sm text-muted-foreground">
+            {edificios.data?.length ?? 0} edifícios · {docs.data?.length ?? 0} documentos
           </p>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link to="/importar"><Upload className="h-4 w-4" /> Importar</Link>
-          </Button>
+          {totalAlertas > 0 && (
+            <Button variant="outline" asChild>
+              <Link to="/alertas">
+                <AlertTriangle className="mr-2 h-4 w-4 text-amber-600" />
+                {totalAlertas} alerta{totalAlertas > 1 ? "s" : ""}
+              </Link>
+            </Button>
+          )}
           <Button asChild>
-            <Link to="/condominios/novo"><Plus className="h-4 w-4" /> Novo condomínio</Link>
+            <Link to="/edificios/novo">
+              <Plus className="mr-2 h-4 w-4" />
+              Novo edifício
+            </Link>
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Pesquisar por nome, morada ou nº interno..."
-            className="pl-9"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-        </div>
-        <Select value={estado} onValueChange={setEstado}>
-          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos</SelectItem>
-            <SelectItem value="ativo">Ativos</SelectItem>
-            <SelectItem value="inativo">Inativos</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={banco} onValueChange={setBanco}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Banco" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os bancos</SelectItem>
-            {bancos.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={companhia} onValueChange={setCompanhia}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Eletricidade" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todas as companhias</SelectItem>
-            {companhias.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-          </SelectContent>
-        </Select>
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          className="pl-9 bg-background"
+          placeholder="Procurar por nome, morada ou identificação..."
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
       </div>
 
-      <div className="rounded-lg border bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[80px]">Nº</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Morada</TableHead>
-              <TableHead>Localidade</TableHead>
-              <TableHead>Banco</TableHead>
-              <TableHead>Eletricidade</TableHead>
-              <TableHead className="w-[100px]">Estado</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">A carregar...</TableCell></TableRow>
-            ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                {data.length === 0 ? "Ainda não existem condomínios. Cria o primeiro ou importa uma lista." : "Sem resultados para os filtros aplicados."}
-              </TableCell></TableRow>
-            ) : filtered.map((c) => (
-              <TableRow key={c.id} className="cursor-pointer hover:bg-accent/50" onClick={() => (window.location.href = `/condominios/${c.id}`)}>
-                <TableCell className="font-mono text-xs">{c.numero_interno || "—"}</TableCell>
-                <TableCell className="font-medium">{c.nome}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{c.morada || "—"}</TableCell>
-                <TableCell className="text-sm">{c.localidade || "—"}</TableCell>
-                <TableCell className="text-sm">{c.contas_bancarias?.banco || "—"}</TableCell>
-                <TableCell className="text-sm">{c.contratos_eletricidade?.companhia || "—"}</TableCell>
-                <TableCell>
-                  <Badge variant={c.ativo ? "default" : "secondary"}>
-                    {c.ativo ? "Ativo" : "Inativo"}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {edificios.isLoading ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
+        </div>
+      ) : lista.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
+            <Building2 className="h-10 w-10 text-muted-foreground" />
+            <div>
+              <p className="font-medium">
+                {q ? "Nenhum edifício encontrado" : "Ainda não há edifícios"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {q ? "Tente outra pesquisa." : "Comece por criar o primeiro edifício."}
+              </p>
+            </div>
+            {!q && (
+              <Button asChild>
+                <Link to="/edificios/novo">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo edifício
+                </Link>
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {lista.map((e) => {
+            const stats = porEdificio.get(e.id) ?? { total: 0, alertas: 0 };
+            return (
+              <Link key={e.id} to="/edificios/$id" params={{ id: e.id }} className="group">
+                <Card className="h-full transition-shadow hover:shadow-md">
+                  <CardContent className="space-y-3 p-5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h2 className="truncate font-semibold group-hover:text-primary">{e.nome}</h2>
+                        <p className="truncate text-sm text-muted-foreground">
+                          {e.morada || "Sem morada"}
+                          {e.localidade ? ` · ${e.localidade}` : ""}
+                        </p>
+                      </div>
+                      {e.identificacao_interna && (
+                        <Badge variant="secondary" className="shrink-0">
+                          {e.identificacao_interna}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <FileText className="h-3.5 w-3.5" />
+                        {stats.total} documento{stats.total === 1 ? "" : "s"}
+                      </span>
+                      {stats.alertas > 0 && (
+                        <span className="inline-flex items-center gap-1 font-medium text-amber-700">
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          {stats.alertas} a expirar
+                        </span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
