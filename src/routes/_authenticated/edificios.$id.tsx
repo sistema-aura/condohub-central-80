@@ -242,6 +242,66 @@ function EdificioPage() {
         </TabsList>
 
         <TabsContent value="documentos" className="space-y-4 pt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Landmark className="h-4 w-4 text-primary" />
+                Acesso ao banco
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form
+                className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  guardarBanco.mutate({
+                    banco_codigo_acesso: codigoAcesso.trim() || null,
+                    banco_pin: pin.trim() || null,
+                  });
+                }}
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="banco-codigo">Código de acesso</Label>
+                  <Input
+                    id="banco-codigo"
+                    value={codigoAcesso}
+                    onChange={(e) => setCodigoAcesso(e.target.value)}
+                    maxLength={50}
+                    autoComplete="off"
+                    placeholder="Ex.: 123456789"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="banco-pin">PIN</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="banco-pin"
+                      type={verPin ? "text" : "password"}
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value)}
+                      maxLength={20}
+                      autoComplete="off"
+                      placeholder="••••"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      title={verPin ? "Ocultar PIN" : "Mostrar PIN"}
+                      onClick={() => setVerPin((v) => !v)}
+                    >
+                      {verPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <Button type="submit" disabled={guardarBanco.isPending}>
+                  {guardarBanco.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Guardar
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
           <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
