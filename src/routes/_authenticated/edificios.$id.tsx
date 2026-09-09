@@ -72,6 +72,9 @@ function EdificioPage() {
   const [editing, setEditing] = useState<DocumentoRow | null>(null);
   const [apagar, setApagar] = useState<DocumentoRow | null>(null);
   const [apagarEdificio, setApagarEdificio] = useState(false);
+  const [codigoAcesso, setCodigoAcesso] = useState("");
+  const [pin, setPin] = useState("");
+  const [verPin, setVerPin] = useState(false);
 
   const edificio = useQuery({
     queryKey: ["edificio", id],
@@ -80,6 +83,24 @@ function EdificioPage() {
       if (error) throw error;
       return data;
     },
+  });
+
+  useEffect(() => {
+    if (!edificio.data) return;
+    setCodigoAcesso((edificio.data as { banco_codigo_acesso?: string | null }).banco_codigo_acesso ?? "");
+    setPin((edificio.data as { banco_pin?: string | null }).banco_pin ?? "");
+  }, [edificio.data]);
+
+  const guardarBanco = useMutation({
+    mutationFn: async (values: { banco_codigo_acesso: string | null; banco_pin: string | null }) => {
+      const { error } = await supabase.from("edificios").update(values).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["edificio", id] });
+      toast.success("Dados do banco guardados.");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const documentos = useQuery({
