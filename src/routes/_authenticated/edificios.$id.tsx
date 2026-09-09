@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -11,6 +11,9 @@ import {
   Search,
   Trash2,
   Building2,
+  Landmark,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -69,6 +72,9 @@ function EdificioPage() {
   const [editing, setEditing] = useState<DocumentoRow | null>(null);
   const [apagar, setApagar] = useState<DocumentoRow | null>(null);
   const [apagarEdificio, setApagarEdificio] = useState(false);
+  const [codigoAcesso, setCodigoAcesso] = useState("");
+  const [pin, setPin] = useState("");
+  const [verPin, setVerPin] = useState(false);
 
   const edificio = useQuery({
     queryKey: ["edificio", id],
@@ -77,6 +83,24 @@ function EdificioPage() {
       if (error) throw error;
       return data;
     },
+  });
+
+  useEffect(() => {
+    if (!edificio.data) return;
+    setCodigoAcesso((edificio.data as { banco_codigo_acesso?: string | null }).banco_codigo_acesso ?? "");
+    setPin((edificio.data as { banco_pin?: string | null }).banco_pin ?? "");
+  }, [edificio.data]);
+
+  const guardarBanco = useMutation({
+    mutationFn: async (values: { banco_codigo_acesso: string | null; banco_pin: string | null }) => {
+      const { error } = await supabase.from("edificios").update(values).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["edificio", id] });
+      toast.success("Dados do banco guardados.");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const documentos = useQuery({
@@ -242,6 +266,66 @@ function EdificioPage() {
         </TabsList>
 
         <TabsContent value="documentos" className="space-y-4 pt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Landmark className="h-4 w-4 text-primary" />
+                Acesso ao banco
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form
+                className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  guardarBanco.mutate({
+                    banco_codigo_acesso: codigoAcesso.trim() || null,
+                    banco_pin: pin.trim() || null,
+                  });
+                }}
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="banco-codigo">Código de acesso</Label>
+                  <Input
+                    id="banco-codigo"
+                    value={codigoAcesso}
+                    onChange={(e) => setCodigoAcesso(e.target.value)}
+                    maxLength={50}
+                    autoComplete="off"
+                    placeholder="Ex.: 123456789"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="banco-pin">PIN</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="banco-pin"
+                      type={verPin ? "text" : "password"}
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value)}
+                      maxLength={20}
+                      autoComplete="off"
+                      placeholder="••••"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      title={verPin ? "Ocultar PIN" : "Mostrar PIN"}
+                      onClick={() => setVerPin((v) => !v)}
+                    >
+                      {verPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <Button type="submit" disabled={guardarBanco.isPending}>
+                  {guardarBanco.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Guardar
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
           <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
