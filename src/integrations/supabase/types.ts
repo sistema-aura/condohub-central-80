@@ -76,6 +76,8 @@ export type Database = {
       edificios: {
         Row: {
           ativo: boolean
+          banco_codigo_acesso: string | null
+          banco_pin: string | null
           codigo_postal: string | null
           created_at: string
           created_by: string | null
@@ -89,6 +91,8 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          banco_codigo_acesso?: string | null
+          banco_pin?: string | null
           codigo_postal?: string | null
           created_at?: string
           created_by?: string | null
@@ -102,6 +106,8 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          banco_codigo_acesso?: string | null
+          banco_pin?: string | null
           codigo_postal?: string | null
           created_at?: string
           created_by?: string | null
