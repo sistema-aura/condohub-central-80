@@ -51,7 +51,7 @@ export async function descarregarDeclaracao(edificio: Edificio, declaracao: Decl
     2: required(edificio.nome, "o nome do prédio"),
     5: [edificio.morada, edificio.codigo_postal].filter(Boolean).join(", ") || "___________",
     7: edificio.localidade || "___________",
-    10: nipc || "___________",
+    10: `${nipc || "___________"} `,
     15: required(declaracao.proprietario, "o proprietário"),
     18: required(declaracao.nif, "o NIF"),
     21: required(declaracao.fracao, "a fração") + " ",
@@ -67,7 +67,7 @@ export async function descarregarDeclaracao(edificio: Edificio, declaracao: Decl
     7: String(year).slice(-1),
   });
   replaceRuns("Identificação da Fração", {}); // Assert the original table is present.
-  replaceRuns("_ – _º __", { 0: required(declaracao.fracao, "a fração"), 3: "", 5: "" });
+  replaceRuns("_ – _º __", { 0: required(declaracao.fracao, "a fração"), 1: "", 2: "", 3: "", 4: "", 5: "", 6: "" });
   replaceRuns("__,__€", { 0: required(declaracao.quota_mensal, "a quota mensal"), 1: "", 2: "" });
   replaceRuns("_,_ €", { 0: required(declaracao.fundo_reserva, "o fundo comum de reserva"), 1: "", 2: "" });
   const nada = paragraphs.filter((p) => content(p) === "Nada em vigor");
