@@ -169,7 +169,8 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
                 <td className="p-2">{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"} · {d.urgente ? "Urgente" : "Normal"}</td>
                 <td className="p-2 text-right">{eur(preco(d))}</td>
                 <td className="p-2 text-right">{d.reconhecida ? eur(solicitadora(d)) : "—"}</td>
-                <td className="p-2 text-right">{eur(dinamico(d))}</td>
+                <td className="p-2 text-right">{eur(dinamico(d) / IVA)}</td>
+                <td className="p-2 text-right">{eur(dinamico(d) - dinamico(d) / IVA)}</td>
               </tr>); })}</tbody>
           </table>
         </div>
