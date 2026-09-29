@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { descarregarDeclaracao } from "@/lib/declaracao-word";
 
 export const Route = createFileRoute("/_authenticated/declaracoes")({
   head: () => ({
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/declaracoes")({
 });
 
 type Ed = { id: string; nome: string; identificacao_interna: string | null; morada: string | null; codigo_postal: string | null; localidade: string | null; observacoes: string | null };
-type Dec = { id: string; edificio_id: string; fracao: string | null; proprietario: string | null; nif: string | null; urgente: boolean; reconhecida: boolean; feita: boolean; observacoes: string | null; created_at: string };
+type Dec = { id: string; edificio_id: string; fracao: string | null; proprietario: string | null; nif: string | null; urgente: boolean; reconhecida: boolean; feita: boolean; observacoes: string | null; created_at: string; quota_mensal: string | null; fundo_reserva: string | null; quota_seguro: string | null; quota_extraordinaria: string | null };
 
 function Page() {
   const qc = useQueryClient();
@@ -96,7 +97,7 @@ function Page() {
                     </div>
                     <Badge variant={d.urgente ? "destructive" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { urgente: !d.urgente })}>{d.urgente ? "Com urgência" : "Sem urgência"}</Badge>
                     <Badge variant={d.reconhecida ? "default" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}</Badge>
-                    <Button size="icon" variant="ghost" title="Gerar declaração" onClick={() => e && imprimir(e, d)}><Printer className="h-4 w-4" /></Button>
+                     <Button size="icon" variant="ghost" title="Descarregar declaração Word" onClick={() => { if (e) void descarregarDeclaracao(e, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-4 w-4" /></Button>
                     <Button size="icon" variant="ghost" title={d.feita ? "Voltar a por fazer" : "Marcar como feita"} onClick={() => upd(d.id, { feita: !d.feita })}>{d.feita ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}</Button>
                     <Button size="icon" variant="ghost" onClick={() => del(d.id)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
@@ -132,20 +133,21 @@ function Page() {
 
 function NovaDialog({ eds, onDone }: { eds: Ed[]; onDone: () => void }) {
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ edificio_id: "", fracao: "", proprietario: "", nif: "", observacoes: "", urgente: false, reconhecida: false });
+  const empty = { edificio_id: "", fracao: "", proprietario: "", nif: "", observacoes: "", urgente: false, reconhecida: false, quota_mensal: "", fundo_reserva: "", quota_seguro: "Nada em vigor", quota_extraordinaria: "Nada em vigor" };
+  const [f, setF] = useState(empty);
   async function save() {
     if (!f.edificio_id) return toast.error("Escolhe o prédio");
     const { data: u } = await supabase.auth.getUser();
     const { error } = await supabase.from("declaracoes").insert({ ...f, created_by: u.user?.id });
     if (error) return toast.error(error.message);
     setOpen(false);
-    setF({ edificio_id: "", fracao: "", proprietario: "", nif: "", observacoes: "", urgente: false, reconhecida: false });
+    setF(empty);
     onDone();
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button><Plus className="mr-1 h-4 w-4" />Nova declaração</Button></DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Nova declaração</DialogTitle></DialogHeader>
         <Card><CardContent className="space-y-3 pt-4">
           <div><Label>Prédio</Label>
@@ -159,6 +161,12 @@ function NovaDialog({ eds, onDone }: { eds: Ed[]; onDone: () => void }) {
             <div><Label>NIF</Label><Input value={f.nif} onChange={(e) => setF({ ...f, nif: e.target.value })} /></div>
           </div>
           <div><Label>Proprietário</Label><Input value={f.proprietario} onChange={(e) => setF({ ...f, proprietario: e.target.value })} /></div>
+           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+             <div><Label>Quota mensal (€)</Label><Input inputMode="decimal" value={f.quota_mensal} onChange={(e) => setF({ ...f, quota_mensal: e.target.value })} /></div>
+             <div><Label>Fundo comum de reserva (€)</Label><Input inputMode="decimal" value={f.fundo_reserva} onChange={(e) => setF({ ...f, fundo_reserva: e.target.value })} /></div>
+             <div><Label>Quota seguro condomínio (€)</Label><Input value={f.quota_seguro} onChange={(e) => setF({ ...f, quota_seguro: e.target.value })} /></div>
+             <div><Label>Quota extraordinária</Label><Input value={f.quota_extraordinaria} onChange={(e) => setF({ ...f, quota_extraordinaria: e.target.value })} /></div>
+           </div>
           <div><Label>Notas</Label><Input value={f.observacoes} onChange={(e) => setF({ ...f, observacoes: e.target.value })} /></div>
           <div className="flex gap-6">
             <label className="flex items-center gap-2 text-sm"><Switch checked={f.urgente} onCheckedChange={(v) => setF({ ...f, urgente: v })} />Com urgência</label>
@@ -171,26 +179,3 @@ function NovaDialog({ eds, onDone }: { eds: Ed[]; onDone: () => void }) {
   );
 }
 
-const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
-
-function imprimir(e: Ed, d: Dec) {
-  const hoje = new Date();
-  const data = `${hoje.getDate()} de ${MESES[hoje.getMonth()]} de ${hoje.getFullYear()}`;
-  const nipc = e.observacoes?.match(/NIPC[:\s]*([\d ]{9,11})/i)?.[1]?.trim() ?? "___________";
-  const morada = [e.morada, e.codigo_postal, e.localidade].filter(Boolean).join(" ");
-  const L = "_______";
-  const html = `<html><head><meta charset="utf-8"><title>Declaração ${esc(e.nome)}</title><style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;line-height:1.6;font-size:14px}h1{text-align:center;font-size:18px}table{width:100%;border-collapse:collapse;margin:16px 0}td,th{border:1px solid #000;padding:6px;text-align:center;font-size:12px}</style></head><body>
-<h1>DECLARAÇÃO INEXISTÊNCIA DE DÍVIDA</h1>
-<p>Para os devidos efeitos a Administração do Condomínio ${esc(e.nome)}${morada ? " - " + esc(morada) : ""}, com NIPC ${esc(nipc)} declara nos termos da alínea q) do n.º 1 do artigo 1436.º do Código Civil, que o(a) ${esc(d.proprietario || L)} contribuinte nº ${esc(d.nif || L)} proprietário(a) da fração ${esc(d.fracao || L)}, à data de ${data}, apresenta a seguinte situação perante o condomínio:</p>
-<p>Tem a sua situação regularizada perante o Condomínio, não sendo devedor de quaisquer encargos até ${data}.</p>
-<p>Declaramos ainda a seguinte lista de encargos, de periodicidade mensal a ser paga a dia 8:</p>
-<table><tr><th>Identificação da Fração</th><th>Quota (€)</th><th>Fundo Comum de Reserva (€)</th><th>Quota Seguro Condomínio (€)</th><th>Quota Extraordinária</th></tr>
-<tr><td contenteditable>${esc(d.fracao || "")}</td><td contenteditable>__,__ €</td><td contenteditable>_,_ €</td><td contenteditable>Nada em vigor</td><td contenteditable>Nada em vigor</td></tr></table>
-<p>Setúbal, ${data}</p><br><br><p style="text-align:center">A Administração de Condomínio<br><br><br>_________________________________________</p>
-<script>setTimeout(()=>print(),300)</script></body></html>`;
-  const w = window.open("", "_blank");
-  if (!w) return toast.error("Permite pop-ups para gerar a declaração");
-  w.document.write(html);
-  w.document.close();
-}

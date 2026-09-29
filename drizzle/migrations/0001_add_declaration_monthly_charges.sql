@@ -1,0 +1,1 @@
+ALTER TABLE public.declaracoes ADD COLUMN quota_mensal text, ADD COLUMN fundo_reserva text, ADD COLUMN quota_seguro text, ADD COLUMN quota_extraordinaria text;
