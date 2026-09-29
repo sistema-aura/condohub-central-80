@@ -20,6 +20,7 @@ export type Database = {
           created_by: string | null
           edificio_id: string
           feita: boolean
+          feita_em: string | null
           fracao: string | null
           fundo_reserva: string | null
           id: string
@@ -38,6 +39,7 @@ export type Database = {
           created_by?: string | null
           edificio_id: string
           feita?: boolean
+          feita_em?: string | null
           fracao?: string | null
           fundo_reserva?: string | null
           id?: string
@@ -56,6 +58,7 @@ export type Database = {
           created_by?: string | null
           edificio_id?: string
           feita?: boolean
+          feita_em?: string | null
           fracao?: string | null
           fundo_reserva?: string | null
           id?: string
