@@ -140,6 +140,7 @@ const preco = (d: Dec) => (d.reconhecida ? (d.urgente ? 67.65 : 55.35) : d.urgen
 const solBase = (d: Dec) => (d.reconhecida ? (d.urgente ? 30 : 25) : 0);
 const solicitadora = (d: Dec) => solBase(d) * IVA;
 const dinamico = (d: Dec) => preco(d) - solicitadora(d);
+const nono = (d: Dec) => dinamico(d) / IVA; // parte da Dinâmico sem IVA
 const eur = (n: number) => n.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
 function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
