@@ -1,6 +1,8 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Building2, LayoutDashboard, AlertTriangle, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, AlertTriangle, Users, LogOut } from "lucide-react";
+
+import logoMark from "@/assets/logo-mark.png.asset.json";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -40,9 +42,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="rounded-md bg-primary p-1.5 text-primary-foreground">
-            <Building2 className="h-4 w-4" />
-          </div>
+          <img src={logoMark.url} alt="Dinâmico" className="h-8 w-8 object-contain" />
           <div className="text-sm font-semibold leading-tight">Condomínio Dinâmico</div>
         </div>
       </SidebarHeader>
