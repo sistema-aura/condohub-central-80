@@ -134,9 +134,12 @@ function Page() {
   );
 }
 
-// Preços: cliente (com IVA) e solicitadora (só reconhecidas).
+// Preços: cliente (com IVA), solicitadora (base + IVA, só reconhecidas) e parte da Dinâmico.
+const IVA = 1.23;
 const preco = (d: Dec) => (d.reconhecida ? (d.urgente ? 67.65 : 55.35) : d.urgente ? 30.75 : 18.45);
-const solicitadora = (d: Dec) => (d.reconhecida ? (d.urgente ? 30 : 25) : 0);
+const solBase = (d: Dec) => (d.reconhecida ? (d.urgente ? 30 : 25) : 0);
+const solicitadora = (d: Dec) => solBase(d) * IVA;
+const dinamico = (d: Dec) => preco(d) - solicitadora(d);
 const eur = (n: number) => n.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
 function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
@@ -146,15 +149,16 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2"><Label>Mês</Label><Input type="month" className="w-44" value={mes} onChange={(e) => setMes(e.target.value)} /></div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-4">
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Feitas</div><div className="text-2xl font-semibold">{rows.length}</div></CardContent></Card>
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Faturado (c/ IVA)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + preco(d), 0))}</div></CardContent></Card>
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">A pagar à solicitadora ({rec.length})</div><div className="text-2xl font-semibold text-primary">{eur(rec.reduce((s, d) => s + solicitadora(d), 0))}</div></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Parte da Dinâmico</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + dinamico(d), 0))}</div></CardContent></Card>
       </div>
       {rows.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma declaração feita neste mês.</p> : (
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="bg-muted text-left"><tr><th className="p-2">Data</th><th className="p-2">Prédio</th><th className="p-2">Fração</th><th className="p-2">Tipo</th><th className="p-2 text-right">Preço</th><th className="p-2 text-right">Solicitadora</th></tr></thead>
+            <thead className="bg-muted text-left"><tr><th className="p-2">Data</th><th className="p-2">Prédio</th><th className="p-2">Fração</th><th className="p-2">Tipo</th><th className="p-2 text-right">Preço</th><th className="p-2 text-right">Solicitadora (c/ IVA)</th><th className="p-2 text-right">Dinâmico</th></tr></thead>
             <tbody>{rows.map((d) => { const e = edMap.get(d.edificio_id); return (
               <tr key={d.id} className="border-t">
                 <td className="p-2">{new Date(d.feita_em ?? d.created_at).toLocaleDateString("pt-PT")}</td>
@@ -163,6 +167,7 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
                 <td className="p-2">{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"} · {d.urgente ? "Urgente" : "Normal"}</td>
                 <td className="p-2 text-right">{eur(preco(d))}</td>
                 <td className="p-2 text-right">{d.reconhecida ? eur(solicitadora(d)) : "—"}</td>
+                <td className="p-2 text-right">{eur(dinamico(d))}</td>
               </tr>); })}</tbody>
           </table>
         </div>
