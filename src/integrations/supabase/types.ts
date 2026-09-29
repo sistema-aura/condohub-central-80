@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      declaracoes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          edificio_id: string
+          feita: boolean
+          fracao: string | null
+          id: string
+          nif: string | null
+          observacoes: string | null
+          proprietario: string | null
+          reconhecida: boolean
+          updated_at: string
+          urgente: boolean
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          edificio_id: string
+          feita?: boolean
+          fracao?: string | null
+          id?: string
+          nif?: string | null
+          observacoes?: string | null
+          proprietario?: string | null
+          reconhecida?: boolean
+          updated_at?: string
+          urgente?: boolean
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          edificio_id?: string
+          feita?: boolean
+          fracao?: string | null
+          id?: string
+          nif?: string | null
+          observacoes?: string | null
+          proprietario?: string | null
+          reconhecida?: boolean
+          updated_at?: string
+          urgente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "declaracoes_edificio_id_fkey"
+            columns: ["edificio_id"]
+            isOneToOne: false
+            referencedRelation: "edificios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos: {
         Row: {
           created_at: string
