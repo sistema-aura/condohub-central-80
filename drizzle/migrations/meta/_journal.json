@@ -15,6 +15,13 @@
       "when": 1790696223195,
       "tag": "0001_add_declaration_monthly_charges",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790697430427,
+      "tag": "0002_declaracoes_feita_em",
+      "breakpoints": true
     }
   ]
 }
