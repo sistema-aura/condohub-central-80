@@ -85,8 +85,8 @@ function AuthPage() {
     <div className="min-h-screen grid lg:grid-cols-2 bg-muted/30">
       <div className="hidden lg:flex flex-col justify-between bg-primary p-12 text-primary-foreground">
         <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-primary-foreground/15 p-2">
-            <Building2 className="h-6 w-6" />
+          <div className="rounded-lg bg-white p-2">
+            <img src={logoMark.url} alt="Dinâmico" className="h-8 w-8 object-contain" />
           </div>
           <span className="text-lg font-semibold">Condomínio Dinâmico</span>
         </div>
@@ -104,7 +104,12 @@ function AuthPage() {
 
       <div className="flex items-center justify-center p-6">
         <Card className="w-full max-w-sm">
-          <CardHeader>
+          <CardHeader className="items-center text-center">
+            <img
+              src={logoFull.url}
+              alt="Dinâmico — Gestão de Condomínios"
+              className="mx-auto mb-2 h-28 w-auto object-contain"
+            />
             <CardTitle>{isSetup ? "Criar conta de administrador" : "Entrar"}</CardTitle>
             <CardDescription>
               {isSetup
