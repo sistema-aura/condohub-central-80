@@ -154,7 +154,8 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Feitas</div><div className="text-2xl font-semibold">{rows.length}</div></CardContent></Card>
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Faturado (c/ IVA)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + preco(d), 0))}</div></CardContent></Card>
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">A pagar à solicitadora ({rec.length})</div><div className="text-2xl font-semibold text-primary">{eur(rec.reduce((s, d) => s + solicitadora(d), 0))}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Parte da Dinâmico</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + dinamico(d), 0))}</div></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Nono (sem IVA)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + nono(d), 0))}</div></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">IVA (fica p/ Dinâmico)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + dinamico(d) - nono(d), 0))}</div></CardContent></Card>
       </div>
       {rows.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma declaração feita neste mês.</p> : (
         <div className="overflow-x-auto rounded-lg border">
