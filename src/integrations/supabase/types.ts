@@ -21,10 +21,14 @@ export type Database = {
           edificio_id: string
           feita: boolean
           fracao: string | null
+          fundo_reserva: string | null
           id: string
           nif: string | null
           observacoes: string | null
           proprietario: string | null
+          quota_extraordinaria: string | null
+          quota_mensal: string | null
+          quota_seguro: string | null
           reconhecida: boolean
           updated_at: string
           urgente: boolean
@@ -35,10 +39,14 @@ export type Database = {
           edificio_id: string
           feita?: boolean
           fracao?: string | null
+          fundo_reserva?: string | null
           id?: string
           nif?: string | null
           observacoes?: string | null
           proprietario?: string | null
+          quota_extraordinaria?: string | null
+          quota_mensal?: string | null
+          quota_seguro?: string | null
           reconhecida?: boolean
           updated_at?: string
           urgente?: boolean
@@ -49,10 +57,14 @@ export type Database = {
           edificio_id?: string
           feita?: boolean
           fracao?: string | null
+          fundo_reserva?: string | null
           id?: string
           nif?: string | null
           observacoes?: string | null
           proprietario?: string | null
+          quota_extraordinaria?: string | null
+          quota_mensal?: string | null
+          quota_seguro?: string | null
           reconhecida?: boolean
           updated_at?: string
           urgente?: boolean
