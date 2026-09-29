@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Notificacoes } from "@/components/notificacoes";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -24,6 +25,7 @@ function AuthenticatedLayout() {
             <span className="text-sm font-medium text-muted-foreground md:hidden">
               Condomínio Dinâmico
             </span>
+            <Notificacoes />
           </header>
           <main className="flex-1 min-w-0">
             <Outlet />
