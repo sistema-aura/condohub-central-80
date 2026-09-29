@@ -134,9 +134,12 @@ function Page() {
   );
 }
 
-// Preços: cliente (com IVA) e solicitadora (só reconhecidas).
+// Preços: cliente (com IVA), solicitadora (base + IVA, só reconhecidas) e parte da Dinâmico.
+const IVA = 1.23;
 const preco = (d: Dec) => (d.reconhecida ? (d.urgente ? 67.65 : 55.35) : d.urgente ? 30.75 : 18.45);
-const solicitadora = (d: Dec) => (d.reconhecida ? (d.urgente ? 30 : 25) : 0);
+const solBase = (d: Dec) => (d.reconhecida ? (d.urgente ? 30 : 25) : 0);
+const solicitadora = (d: Dec) => solBase(d) * IVA;
+const dinamico = (d: Dec) => preco(d) - solicitadora(d);
 const eur = (n: number) => n.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
 function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
@@ -150,6 +153,7 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Feitas</div><div className="text-2xl font-semibold">{rows.length}</div></CardContent></Card>
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Faturado (c/ IVA)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + preco(d), 0))}</div></CardContent></Card>
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">A pagar à solicitadora ({rec.length})</div><div className="text-2xl font-semibold text-primary">{eur(rec.reduce((s, d) => s + solicitadora(d), 0))}</div></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Parte da Dinâmico</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + dinamico(d), 0))}</div></CardContent></Card>
       </div>
       {rows.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma declaração feita neste mês.</p> : (
         <div className="overflow-x-auto rounded-lg border">
