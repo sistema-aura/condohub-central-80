@@ -2,8 +2,9 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Plus, Trash2, Bell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, Bell, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getTelegramStatus, ligarTelegram } from "@/lib/telegram.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +34,23 @@ function Page() {
   const nomeEd = (id: string) => { const e = edMap.get(id); return e ? `${e.identificacao_interna ? e.identificacao_interna + " · " : ""}${e.nome}` : "—"; };
   const refresh = () => qc.invalidateQueries({ queryKey: ["assembleias"] });
 
+  const [tgOpen, setTgOpen] = useState(false);
+  const [tgBusy, setTgBusy] = useState(false);
+  const tgStatus = useQuery({ queryKey: ["telegram-status"], queryFn: getTelegramStatus });
+  const ligarTg = async () => {
+    setTgBusy(true);
+    try {
+      await ligarTelegram();
+      await qc.invalidateQueries({ queryKey: ["telegram-status"] });
+      toast.success("Avisos ligados! Enviámos uma mensagem de teste ao Telegram.");
+      setTgOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao ligar o Telegram");
+    } finally {
+      setTgBusy(false);
+    }
+  };
+
   const abrir = (dia: string, a?: Ass) => {
     if (a) { const d = new Date(a.data_hora); setForm({ id: a.id, edificio_id: a.edificio_id, dia: ymd(d), hora: `${pad(d.getHours())}:${pad(d.getMinutes())}`, local: a.local ?? "", observacoes: a.observacoes ?? "", convocatoria_enviada: a.convocatoria_enviada }); }
     else setForm({ edificio_id: "", dia, hora: "19:00", local: "", observacoes: "", convocatoria_enviada: false });
@@ -61,6 +79,7 @@ function Page() {
         <h1 className="text-2xl font-semibold mr-auto">Assembleias</h1>
         <span className="flex items-center gap-1 text-xs"><span className="h-3 w-3 rounded bg-orange-500" />Convocatória por enviar</span>
         <span className="flex items-center gap-1 text-xs"><span className="h-3 w-3 rounded bg-blue-600" />Convocatória enviada</span>
+        <Button variant="outline" onClick={() => setTgOpen(true)}><Send className="h-4 w-4 mr-1" />Telegram</Button>
         <Button onClick={() => abrir(hoje)}><Plus className="h-4 w-4 mr-1" />Marcar reunião</Button>
       </div>
 
@@ -120,6 +139,28 @@ function Page() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={tgOpen} onOpenChange={setTgOpen}>
+        <DialogContent aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Avisos no Telegram</DialogTitle></DialogHeader>
+          <div className="space-y-3 text-sm">
+            <ol className="list-decimal pl-5 space-y-1">
+              <li>Abre o bot <b>@CDinamico_avisosbot</b> no Telegram e envia <b>/start</b>.</li>
+              <li>Volta aqui e carrega em «Ligar avisos».</li>
+            </ol>
+            {tgStatus.data?.chat && (
+              <p>Ligado a: <b>{tgStatus.data.chat.title ?? `chat ${tgStatus.data.chat.chatId}`}</b></p>
+            )}
+            <p className="text-muted-foreground">
+              Recebes no Telegram: convocatória por enviar (12–11 dias antes da reunião) e a reunião (2 dias antes). O aviso é enviado uma vez por dia, de manhã.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setTgOpen(false)}>Fechar</Button>
+              <Button disabled={tgBusy} onClick={ligarTg}>{tgBusy ? "A ligar…" : "Ligar avisos"}</Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
