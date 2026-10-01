@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Plus, Trash2, Bell, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getTelegramStatus, ligarTelegram } from "@/lib/telegram.functions";
+import { getTelegramStatus, ligarTelegram, testarTelegram } from "@/lib/telegram.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +51,13 @@ function Page() {
     }
   };
 
+  const testarTg = async () => {
+    setTgBusy(true);
+    try { const r = await testarTelegram(); toast.success(`Aviso de teste enviado${r.title ? " para " + r.title : ""}. Confirma no Telegram.`); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Erro ao enviar teste"); }
+    finally { setTgBusy(false); }
+  };
+  const [q, setQ] = useState("");
   const abrir = (dia: string, a?: Ass) => {
     if (a) { const d = new Date(a.data_hora); setForm({ id: a.id, edificio_id: a.edificio_id, dia: ymd(d), hora: `${pad(d.getHours())}:${pad(d.getMinutes())}`, local: a.local ?? "", observacoes: a.observacoes ?? "", convocatoria_enviada: a.convocatoria_enviada }); }
     else setForm({ edificio_id: "", dia, hora: "19:00", local: "", observacoes: "", convocatoria_enviada: false });
@@ -81,6 +88,21 @@ function Page() {
         <span className="flex items-center gap-1 text-xs"><span className="h-3 w-3 rounded bg-blue-600" />Convocatória enviada</span>
         <Button variant="outline" onClick={() => setTgOpen(true)}><Send className="h-4 w-4 mr-1" />Telegram</Button>
         <Button onClick={() => abrir(hoje)}><Plus className="h-4 w-4 mr-1" />Marcar reunião</Button>
+      </div>
+
+      <div className="space-y-2">
+        <Input placeholder="Pesquisar prédio (nome ou nº)…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
+        {q.trim() && (() => {
+          const t = q.trim().toLowerCase();
+          const res = lista.filter((a) => nomeEd(a.edificio_id).toLowerCase().includes(t));
+          return <div className="rounded-lg border p-2 text-sm space-y-1">
+            {res.length === 0 ? <div className="text-muted-foreground">Sem reuniões para esse prédio.</div> : res.map((a) => (
+              <div key={"q" + a.id} className="cursor-pointer hover:underline flex items-center gap-2" onClick={() => abrir("", a)}>
+                <span className={`h-2.5 w-2.5 rounded ${a.convocatoria_enviada ? "bg-blue-600" : "bg-orange-500"}`} />
+                {nomeEd(a.edificio_id)} — {new Date(a.data_hora).toLocaleString("pt-PT", { weekday: "long", dateStyle: "long", timeStyle: "short" } as Intl.DateTimeFormatOptions)}{new Date(a.data_hora).getTime() < agora ? " (passada)" : ""}
+              </div>))}
+          </div>;
+        })()}
       </div>
 
       {(convocar.length > 0 || proximas.length > 0) && (
@@ -158,6 +180,7 @@ function Page() {
             </p>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setTgOpen(false)}>Fechar</Button>
+              {tgStatus.data?.chat && <Button variant="outline" disabled={tgBusy} onClick={testarTg}>Enviar aviso de teste</Button>}
               <Button disabled={tgBusy} onClick={ligarTg}>{tgBusy ? "A ligar…" : "Ligar avisos"}</Button>
             </div>
           </div>
