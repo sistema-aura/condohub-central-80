@@ -104,9 +104,13 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
             try {
               await sendTelegramMessage(chatId, av.text);
               enviadas++;
+              const patch =
+                av.col === "avisada_convocatoria"
+                  ? { avisada_convocatoria: true }
+                  : { avisada_reuniao: true };
               const { error: upErr } = await supabaseAdmin
                 .from("assembleias")
-                .update({ [av.col]: true })
+                .update(patch)
                 .eq("id", a.id as string);
               if (upErr) erros.push(upErr.message);
             } catch (e) {
