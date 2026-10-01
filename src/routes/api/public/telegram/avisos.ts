@@ -119,6 +119,25 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           }
         }
 
+        // Documentos que expiram daqui a exatamente 90 dias (cron diário → 1 aviso por documento)
+        const alvo = new Date(hojeMs + 90 * 86400000).toISOString().slice(0, 10);
+        const { data: docs } = await supabaseAdmin
+          .from("documentos")
+          .select("titulo, edificio_id, data_validade")
+          .eq("data_validade", alvo);
+        for (const d of docs ?? []) {
+          try {
+            const [y, m, dd] = (d.data_validade as string).split("-");
+            await sendTelegramMessage(
+              chatId,
+              `⚠️ Documento expira em 90 dias\n${nomeEd(d.edificio_id as string)}\n${d.titulo}\nValidade: ${dd}/${m}/${y}`,
+            );
+            enviadas++;
+          } catch (e) {
+            erros.push(e instanceof Error ? e.message : String(e));
+          }
+        }
+
         return Response.json({ ok: true, enviadas, erros });
       },
     },
