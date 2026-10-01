@@ -88,13 +88,13 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           const nome = nomeEd(a.edificio_id as string);
 
           const avisos: Array<{ text: string; col: "avisada_convocatoria" | "avisada_reuniao" }> = [];
-          if (!a.convocatoria_enviada && !a.avisada_convocatoria && ((dias >= 11 && dias <= 12) || dias === 15)) {
+          if (!a.convocatoria_enviada && ((dias >= 11 && dias <= 12) || dias === 15)) {
             avisos.push({
               text: `📨 Convocatória por enviar\n${nome}\nReunião: ${quando}`,
               col: "avisada_convocatoria",
             });
           }
-          if (!a.avisada_reuniao && dias >= 0 && dias <= 2) {
+          if (dias >= 0 && dias <= 2) {
             avisos.push({ text: `📅 Reunião em breve\n${nome}\n${quando}`, col: "avisada_reuniao" });
           }
 
