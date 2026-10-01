@@ -147,7 +147,7 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
 
         // Declarações por fazer: lembrete diário a todos os chats (passagem da manhã)
         const horaLx = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Lisbon", hour: "2-digit", hour12: false }).format(new Date()));
-        if (horaLx < 12) {
+        if (horaLx < 12 || request.headers.get("x-forcar-declaracoes") === "1") {
           const { data: decs } = await supabaseAdmin
             .from("declaracoes")
             .select("edificio_id,fracao,urgente,reconhecida")
