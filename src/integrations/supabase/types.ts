@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      assembleias: {
+        Row: {
+          convocatoria_enviada: boolean
+          created_at: string
+          created_by: string | null
+          data_hora: string
+          edificio_id: string
+          id: string
+          local: string | null
+          observacoes: string | null
+          updated_at: string
+        }
+        Insert: {
+          convocatoria_enviada?: boolean
+          created_at?: string
+          created_by?: string | null
+          data_hora: string
+          edificio_id: string
+          id?: string
+          local?: string | null
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          convocatoria_enviada?: boolean
+          created_at?: string
+          created_by?: string | null
+          data_hora?: string
+          edificio_id?: string
+          id?: string
+          local?: string | null
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assembleias_edificio_id_fkey"
+            columns: ["edificio_id"]
+            isOneToOne: false
+            referencedRelation: "edificios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       declaracoes: {
         Row: {
           created_at: string
