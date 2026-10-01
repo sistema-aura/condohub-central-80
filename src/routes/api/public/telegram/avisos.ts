@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
 
-async function sendTelegramMessage(chatId: number, text: string): Promise<void> {
+async function sendOne(chatId: number, text: string): Promise<void> {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
   const TELEGRAM_API_KEY = process.env.TELEGRAM_API_KEY;
   if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY) throw new Error("Telegram não configurado");
@@ -33,14 +33,14 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
         const { data: valid, error: rpcError } = await supabaseAdmin.rpc("check_avisos_token", { _token: token });
         if (rpcError || valid !== true) return new Response("Unauthorized", { status: 401 });
 
-        // Chat ligado?
-        const { data: cfg } = await supabaseAdmin
-          .from("telegram_config")
-          .select("chat_id")
-          .eq("id", 1)
-          .maybeSingle();
-        if (!cfg?.chat_id) return Response.json({ ok: true, enviadas: 0, motivo: "sem chat" });
-        const chatId = cfg.chat_id as number;
+        // Chats ligados (todos recebem)
+        const { data: cfgs } = await supabaseAdmin.from("telegram_config").select("chat_id");
+        const chats = (cfgs ?? []).map((c) => c.chat_id as number);
+        if (!chats.length) return Response.json({ ok: true, enviadas: 0, motivo: "sem chat" });
+        const chatId = 0;
+        const sendTelegramMessage = async (_id: number, text: string) => {
+          for (const c of chats) await sendOne(c, text);
+        };
 
         // Datas no fuso de Lisboa
         const fmtDia = new Intl.DateTimeFormat("en-CA", {

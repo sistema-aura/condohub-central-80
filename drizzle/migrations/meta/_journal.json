@@ -29,6 +29,13 @@
       "when": 1790846896881,
       "tag": "0003_create_assembleias",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790851702573,
+      "tag": "0004_telegram_multi_chat",
+      "breakpoints": true
     }
   ]
 }
