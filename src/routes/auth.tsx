@@ -151,6 +151,17 @@ function AuthPage() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
+              {!isSetup && (
+                <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={lembrar}
+                    onChange={(e) => setLembrar(e.target.checked)}
+                    className="h-4 w-4 rounded border-input accent-primary"
+                  />
+                  Lembrar de mim
+                </label>
+              )}
               <Button type="submit" className="w-full" disabled={busy || setup.isLoading}>
                 {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isSetup ? "Criar conta e entrar" : "Entrar"}
