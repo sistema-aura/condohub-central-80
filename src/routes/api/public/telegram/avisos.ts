@@ -71,11 +71,9 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           .gt("data_hora", agora);
         if (assErr) return Response.json({ error: assErr.message }, { status: 500 });
 
-        const edIds = [...new Set((ass ?? []).map((a) => a.edificio_id))];
         const { data: eds } = await supabaseAdmin
           .from("edificios")
-          .select("id,nome,identificacao_interna")
-          .in("id", edIds.length ? edIds : ["00000000-0000-0000-0000-000000000000"]);
+          .select("id,nome,identificacao_interna");
         const nomeEd = (id: string) => {
           const e = (eds ?? []).find((x) => x.id === id);
           if (!e) return "Prédio";
