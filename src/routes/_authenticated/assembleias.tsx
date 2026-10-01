@@ -152,6 +152,12 @@ function Page() {
                 <div><Label>Dia</Label><Input type="date" value={form.dia} onChange={(e) => setForm({ ...form, dia: e.target.value })} /></div>
                 <div><Label>Hora</Label><Input type="time" value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} /></div>
               </div>
+              {form.dia && (() => {
+                const d = new Date(`${form.dia}T00:00:00`);
+                const sem = d.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" });
+                const env = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 15);
+                return <p className="text-xs text-muted-foreground">Reunião: <b className="capitalize">{sem}</b> — enviar convocatória por volta de <b className="capitalize">{env.toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}</b></p>;
+              })()}
               <div><Label>Local</Label><Input value={form.local} onChange={(e) => setForm({ ...form, local: e.target.value })} /></div>
               <div><Label>Notas</Label><Input value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></div>
               <label className="flex items-center gap-2 text-sm"><Switch checked={form.convocatoria_enviada} onCheckedChange={(v) => setForm({ ...form, convocatoria_enviada: v })} />Convocatória enviada</label>
