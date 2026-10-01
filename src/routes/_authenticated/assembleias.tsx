@@ -99,7 +99,7 @@ function Page() {
             {res.length === 0 ? <div className="text-muted-foreground">Sem reuniões para esse prédio.</div> : res.map((a) => (
               <div key={"q" + a.id} className="cursor-pointer hover:underline flex items-center gap-2" onClick={() => abrir("", a)}>
                 <span className={`h-2.5 w-2.5 rounded ${a.convocatoria_enviada ? "bg-blue-600" : "bg-orange-500"}`} />
-                {nomeEd(a.edificio_id)} — {new Date(a.data_hora).toLocaleString("pt-PT", { weekday: "long", dateStyle: "long", timeStyle: "short" } as Intl.DateTimeFormatOptions)}{new Date(a.data_hora).getTime() < agora ? " (passada)" : ""}
+                {nomeEd(a.edificio_id)} — {new Date(a.data_hora).toLocaleString("pt-PT", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}{new Date(a.data_hora).getTime() < agora ? " (passada)" : ""}
               </div>))}
           </div>;
         })()}
