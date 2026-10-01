@@ -13,15 +13,29 @@ export function Notificacoes() {
   useEffect(() => {
     let me: string | undefined;
     supabase.auth.getUser().then(({ data }) => (me = data.user?.id));
+    const avisar = (msg: string, irPara: string) => {
+      toast.info(msg, { action: { label: "Ver", onClick: () => navigate({ to: irPara }) } });
+      if ("Notification" in window && Notification.permission === "granted") new Notification("Condomínio Dinâmico", { body: msg, icon: "/favicon.png" });
+    };
     const ch = supabase
-      .channel("declaracoes-notif")
+      .channel("avisos-notif")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "declaracoes" }, (p) => {
         qc.invalidateQueries({ queryKey: ["declaracoes"] });
         const r = p.new as { created_by: string | null; urgente: boolean; fracao: string | null };
         if (r.created_by && r.created_by === me) return;
-        const msg = `Nova declaração de não dívida${r.urgente ? " (URGENTE)" : ""}${r.fracao ? ` — fração ${r.fracao}` : ""}`;
-        toast.info(msg, { action: { label: "Ver", onClick: () => navigate({ to: "/declaracoes" }) } });
-        if ("Notification" in window && Notification.permission === "granted") new Notification("Condomínio Dinâmico", { body: msg, icon: "/favicon.png" });
+        avisar(`Nova declaração de não dívida${r.urgente ? " (URGENTE)" : ""}${r.fracao ? ` — fração ${r.fracao}` : ""}`, "/declaracoes");
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "documentos" }, (p) => {
+        qc.invalidateQueries({ queryKey: ["documentos"] });
+        const r = p.new as { created_by: string | null; titulo: string | null; edificio_id: string };
+        if (r.created_by && r.created_by === me) return;
+        avisar(`Novo documento${r.titulo ? `: ${r.titulo}` : ""}`, `/edificios/${r.edificio_id}`);
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "assembleias" }, (p) => {
+        qc.invalidateQueries({ queryKey: ["assembleias"] });
+        const r = p.new as { created_by: string | null; data_hora: string };
+        if (r.created_by && r.created_by === me) return;
+        avisar(`Nova assembleia marcada para ${new Date(r.data_hora).toLocaleDateString("pt-PT")}`, "/assembleias");
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
