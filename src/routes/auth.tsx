@@ -76,6 +76,12 @@ function AuthPage() {
       toast.error("Email ou password incorretos.");
       return;
     }
+    if (!lembrar) {
+      // Sem "lembrar": termina a sessão quando o separador/browser fechar
+      window.addEventListener("beforeunload", () => {
+        void supabase.auth.signOut();
+      });
+    }
     navigate({ to: "/dashboard", replace: true });
   }
 
