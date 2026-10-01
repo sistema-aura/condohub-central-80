@@ -33,11 +33,10 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("telegram_config")
-      .select("chat_id,chat_title")
-      .eq("id", 1)
-      .maybeSingle();
+      .select("chat_id,chat_title");
     if (error) throw new Error(error.message);
-    return { chat: data ? { chatId: data.chat_id as number, title: (data.chat_title as string | null) ?? null } : null };
+    const d = data ?? [];
+    return { chat: d.length ? { chatId: d[0].chat_id as number, title: d.map((c) => c.chat_title ?? "?").join(", ") } : null };
   });
 
 export const ligarTelegram = createServerFn({ method: "POST" })
@@ -46,31 +45,31 @@ export const ligarTelegram = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     type Update = { message?: { chat: { id: number; type: string; first_name?: string; title?: string } } };
     const updates = await gatewayCall<Update[]>("/getUpdates?limit=100");
-    const chat = [...updates]
-      .reverse()
-      .map((u) => u.message?.chat)
-      .find((c) => c?.type === "private");
-    if (!chat) {
+    const map = new Map<number, { id: number; first_name?: string }>();
+    for (const u of updates) { const c = u.message?.chat; if (c?.type === "private") map.set(c.id, c); }
+    const chats = [...map.values()];
+    if (!chats.length) {
       throw new Error("Ainda não recebi nenhuma mensagem. Envia /start ao bot no Telegram e tenta outra vez.");
     }
     const { error } = await supabaseAdmin
       .from("telegram_config")
-      .upsert({ id: 1, chat_id: chat.id, chat_title: chat.first_name ?? null });
+      .upsert(chats.map((c) => ({ chat_id: c.id, chat_title: c.first_name ?? null })), { onConflict: "chat_id" });
     if (error) throw new Error(error.message);
-    await gatewayCall("/sendMessage", {
+    for (const chat of chats) await gatewayCall("/sendMessage", {
       chat_id: chat.id,
       text: "✅ Avisos do Condomínio Dinâmico ligados!\nVais receber aqui os avisos das assembleias (convocatória por enviar e reunião em breve).",
     });
-    return { ok: true, title: chat.first_name ?? null };
+    return { ok: true, title: chats.map((c) => c.first_name ?? "?").join(", ") };
   });
 
 export const testarTelegram = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin.from("telegram_config").select("chat_id,chat_title").eq("id", 1).maybeSingle();
+    const { data: all } = await supabaseAdmin.from("telegram_config").select("chat_id,chat_title");
+    const data = all?.[0];
     if (!data) throw new Error("O Telegram ainda não está ligado. Carrega em «Ligar avisos» primeiro.");
     const hora = new Date().toLocaleString("pt-PT", { timeZone: "Europe/Lisbon" });
-    await gatewayCall("/sendMessage", { chat_id: data.chat_id, text: `🔔 Aviso de teste do Condomínio Dinâmico (${hora}).\nSe estás a ler isto, os avisos chegam ao chat certo.` });
-    return { ok: true, title: (data.chat_title as string | null) ?? null };
+    for (const c of all!) await gatewayCall("/sendMessage", { chat_id: c.chat_id, text: `🔔 Aviso de teste do Condomínio Dinâmico (${hora}).\nSe estás a ler isto, os avisos chegam ao chat certo.` });
+    return { ok: true, title: all!.map((c) => c.chat_title ?? "?").join(", ") };
   });
