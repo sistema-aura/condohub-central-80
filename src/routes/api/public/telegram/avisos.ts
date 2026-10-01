@@ -71,11 +71,9 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           .gt("data_hora", agora);
         if (assErr) return Response.json({ error: assErr.message }, { status: 500 });
 
-        const edIds = [...new Set((ass ?? []).map((a) => a.edificio_id))];
         const { data: eds } = await supabaseAdmin
           .from("edificios")
-          .select("id,nome,identificacao_interna")
-          .in("id", edIds.length ? edIds : ["00000000-0000-0000-0000-000000000000"]);
+          .select("id,nome,identificacao_interna");
         const nomeEd = (id: string) => {
           const e = (eds ?? []).find((x) => x.id === id);
           if (!e) return "Prédio";
@@ -116,6 +114,25 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
             } catch (e) {
               erros.push(e instanceof Error ? e.message : String(e));
             }
+          }
+        }
+
+        // Documentos que expiram daqui a exatamente 90 dias (cron diário → 1 aviso por documento)
+        const alvo = new Date(hojeMs + 90 * 86400000).toISOString().slice(0, 10);
+        const { data: docs } = await supabaseAdmin
+          .from("documentos")
+          .select("titulo, edificio_id, data_validade")
+          .eq("data_validade", alvo);
+        for (const d of docs ?? []) {
+          try {
+            const [y, m, dd] = (d.data_validade as string).split("-");
+            await sendTelegramMessage(
+              chatId,
+              `⚠️ Documento expira em 90 dias\n${nomeEd(d.edificio_id as string)}\n${d.titulo}\nValidade: ${dd}/${m}/${y}`,
+            );
+            enviadas++;
+          } catch (e) {
+            erros.push(e instanceof Error ? e.message : String(e));
           }
         }
 
