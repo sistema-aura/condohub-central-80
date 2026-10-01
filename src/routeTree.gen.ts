@@ -19,6 +19,7 @@ import { Route as AuthenticatedAssembleiasRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedEdificiosNovoRouteImport } from './routes/_authenticated/edificios.novo'
 import { Route as AuthenticatedEdificiosIdRouteImport } from './routes/_authenticated/edificios.$id'
+import { Route as ApiPublicTelegramAvisosRouteImport } from './routes/api/public/telegram/avisos'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -74,6 +75,11 @@ const AuthenticatedEdificiosIdRoute =
     path: '/edificios/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicTelegramAvisosRoute = ApiPublicTelegramAvisosRouteImport.update({
+  id: '/api/public/telegram/avisos',
+  path: '/api/public/telegram/avisos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
+  '/api/public/telegram/avisos': typeof ApiPublicTelegramAvisosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
+  '/api/public/telegram/avisos': typeof ApiPublicTelegramAvisosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/_authenticated/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/_authenticated/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/_authenticated/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
+  '/api/public/telegram/avisos': typeof ApiPublicTelegramAvisosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/utilizadores'
     | '/edificios/$id'
     | '/edificios/novo'
+    | '/api/public/telegram/avisos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/utilizadores'
     | '/edificios/$id'
     | '/edificios/novo'
+    | '/api/public/telegram/avisos'
   id:
     | '__root__'
     | '/'
@@ -145,12 +156,14 @@ export interface FileRouteTypes {
     | '/_authenticated/utilizadores'
     | '/_authenticated/edificios/$id'
     | '/_authenticated/edificios/novo'
+    | '/api/public/telegram/avisos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicTelegramAvisosRoute: typeof ApiPublicTelegramAvisosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEdificiosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/telegram/avisos': {
+      id: '/api/public/telegram/avisos'
+      path: '/api/public/telegram/avisos'
+      fullPath: '/api/public/telegram/avisos'
+      preLoaderRoute: typeof ApiPublicTelegramAvisosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -255,6 +275,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicTelegramAvisosRoute: ApiPublicTelegramAvisosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       assembleias: {
         Row: {
+          avisada_convocatoria: boolean
+          avisada_reuniao: boolean
           convocatoria_enviada: boolean
           created_at: string
           created_by: string | null
@@ -27,6 +29,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avisada_convocatoria?: boolean
+          avisada_reuniao?: boolean
           convocatoria_enviada?: boolean
           created_at?: string
           created_by?: string | null
@@ -38,6 +42,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avisada_convocatoria?: boolean
+          avisada_reuniao?: boolean
           convocatoria_enviada?: boolean
           created_at?: string
           created_by?: string | null
@@ -233,12 +239,33 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_config: {
+        Row: {
+          chat_id: number
+          chat_title: string | null
+          created_at: string
+          id: number
+        }
+        Insert: {
+          chat_id: number
+          chat_title?: string | null
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          chat_id?: number
+          chat_title?: string | null
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_avisos_token: { Args: { _token: string }; Returns: boolean }
     }
     Enums: {
       tipo_documento:
