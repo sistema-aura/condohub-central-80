@@ -145,6 +145,25 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           }
         }
 
+        // Declarações por fazer: lembrete diário só ao Leo (passagem da manhã)
+        const horaLx = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Lisbon", hour: "2-digit", hour12: false }).format(new Date()));
+        if (horaLx < 12) {
+          const { data: leoCfg } = await supabaseAdmin.from("telegram_config").select("chat_id").ilike("chat_title", "leo");
+          const { data: decs } = await supabaseAdmin
+            .from("declaracoes")
+            .select("edificio_id,fracao,urgente,reconhecida")
+            .eq("feita", false);
+          if (leoCfg?.length && decs?.length) {
+            const linhas = decs.map((d) => `• ${nomeEd(d.edificio_id as string)}${d.fracao ? ` – ${d.fracao}` : ""}${d.urgente ? " ⚡URGENTE" : ""}${d.reconhecida ? " (reconhecida)" : ""}`);
+            try {
+              for (const c of leoCfg) await sendOne(c.chat_id as number, `📝 Declarações por fazer (${decs.length})\n${linhas.join("\n")}`);
+              enviadas++;
+            } catch (e) {
+              erros.push(e instanceof Error ? e.message : String(e));
+            }
+          }
+        }
+
         return Response.json({ ok: true, enviadas, erros });
       },
     },
