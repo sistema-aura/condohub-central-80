@@ -156,7 +156,8 @@ function Page() {
                 const d = new Date(`${form.dia}T00:00:00`);
                 const sem = d.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" });
                 const env = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 15);
-                return <p className="text-xs text-muted-foreground">Reunião: <b className="capitalize">{sem}</b> — enviar convocatória por volta de <b className="capitalize">{env.toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}</b></p>;
+                const semEnv = env.toLocaleDateString("pt-PT", { weekday: "long" });
+                return <p className="text-xs text-muted-foreground">Reunião: <b className="capitalize">{sem}</b> — enviar convocatória por volta de <b className="capitalize">{env.toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}</b> (<span className="capitalize">{semEnv}</span>)</p>;
               })()}
               <div><Label>Local</Label><Input value={form.local} onChange={(e) => setForm({ ...form, local: e.target.value })} /></div>
               <div><Label>Notas</Label><Input value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></div>
