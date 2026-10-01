@@ -132,7 +132,7 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
             const [y, m, dd] = (d.data_validade as string).split("-");
             await sendTelegramMessage(
               chatId,
-              `⚠️ Contrato acaba em ${dias} dias (TESTE)\n${nomeEd(d.edificio_id as string)}\n${d.titulo}\nValidade: ${dd}/${m}/${y}\nÉ preciso cancelar ou renovar.`,
+              `⚠️ Contrato acaba em ${dias} dias\n${nomeEd(d.edificio_id as string)}\n${d.titulo}\nValidade: ${dd}/${m}/${y}\nÉ preciso cancelar ou renovar.`,
             );
             enviadas++;
             const { error: markErr } = await supabaseAdmin
