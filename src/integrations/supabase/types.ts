@@ -134,6 +134,7 @@ export type Database = {
       }
       documentos: {
         Row: {
+          avisada_validade: boolean
           created_at: string
           created_by: string | null
           data_documento: string | null
@@ -150,6 +151,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avisada_validade?: boolean
           created_at?: string
           created_by?: string | null
           data_documento?: string | null
@@ -166,6 +168,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avisada_validade?: boolean
           created_at?: string
           created_by?: string | null
           data_documento?: string | null
