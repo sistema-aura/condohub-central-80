@@ -63,3 +63,14 @@ export const ligarTelegram = createServerFn({ method: "POST" })
     });
     return { ok: true, title: chat.first_name ?? null };
   });
+
+export const testarTelegram = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.from("telegram_config").select("chat_id,chat_title").eq("id", 1).maybeSingle();
+    if (!data) throw new Error("O Telegram ainda não está ligado. Carrega em «Ligar avisos» primeiro.");
+    const hora = new Date().toLocaleString("pt-PT", { timeZone: "Europe/Lisbon" });
+    await gatewayCall("/sendMessage", { chat_id: data.chat_id, text: `🔔 Aviso de teste do Condomínio Dinâmico (${hora}).\nSe estás a ler isto, os avisos chegam ao chat certo.` });
+    return { ok: true, title: (data.chat_title as string | null) ?? null };
+  });
