@@ -34,6 +34,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [lembrar, setLembrar] = useState(true);
 
   const setupFn = useServerFn(getSetupStatus);
   const firstUserFn = useServerFn(createFirstUser);
