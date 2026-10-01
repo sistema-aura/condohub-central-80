@@ -9,46 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedUtilizadoresRouteImport } from './routes/_authenticated/utilizadores'
-import { Route as AuthenticatedDeclaracoesRouteImport } from './routes/_authenticated/declaracoes'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedAssembleiasRouteImport } from './routes/_authenticated/assembleias'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
-import { Route as AuthenticatedEdificiosNovoRouteImport } from './routes/_authenticated/edificios.novo'
+import { Route as AuthenticatedAssembleiasRouteImport } from './routes/_authenticated/assembleias'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDeclaracoesRouteImport } from './routes/_authenticated/declaracoes'
+import { Route as AuthenticatedUtilizadoresRouteImport } from './routes/_authenticated/utilizadores'
 import { Route as AuthenticatedEdificiosIdRouteImport } from './routes/_authenticated/edificios.$id'
+import { Route as AuthenticatedEdificiosNovoRouteImport } from './routes/_authenticated/edificios.novo'
+import { Route as ApiPublicTelegramAvisosRouteImport } from './routes/api/public/telegram/avisos'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedUtilizadoresRoute =
-  AuthenticatedUtilizadoresRouteImport.update({
-    id: '/utilizadores',
-    path: '/utilizadores',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedDeclaracoesRoute =
-  AuthenticatedDeclaracoesRouteImport.update({
-    id: '/declaracoes',
-    path: '/declaracoes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AuthenticatedAlertasRoute = AuthenticatedAlertasRouteImport.update({
+  id: '/alertas',
+  path: '/alertas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAssembleiasRoute =
@@ -57,15 +46,21 @@ const AuthenticatedAssembleiasRoute =
     path: '/assembleias',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAlertasRoute = AuthenticatedAlertasRouteImport.update({
-  id: '/alertas',
-  path: '/alertas',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedEdificiosNovoRoute =
-  AuthenticatedEdificiosNovoRouteImport.update({
-    id: '/edificios/novo',
-    path: '/edificios/novo',
+const AuthenticatedDeclaracoesRoute =
+  AuthenticatedDeclaracoesRouteImport.update({
+    id: '/declaracoes',
+    path: '/declaracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedUtilizadoresRoute =
+  AuthenticatedUtilizadoresRouteImport.update({
+    id: '/utilizadores',
+    path: '/utilizadores',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedEdificiosIdRoute =
@@ -74,6 +69,17 @@ const AuthenticatedEdificiosIdRoute =
     path: '/edificios/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEdificiosNovoRoute =
+  AuthenticatedEdificiosNovoRouteImport.update({
+    id: '/edificios/novo',
+    path: '/edificios/novo',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicTelegramAvisosRoute = ApiPublicTelegramAvisosRouteImport.update({
+  id: '/api/public/telegram/avisos',
+  path: '/api/public/telegram/avisos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
+  '/api/public/telegram/avisos': typeof ApiPublicTelegramAvisosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
+  '/api/public/telegram/avisos': typeof ApiPublicTelegramAvisosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/_authenticated/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/_authenticated/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/_authenticated/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
+  '/api/public/telegram/avisos': typeof ApiPublicTelegramAvisosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/utilizadores'
     | '/edificios/$id'
     | '/edificios/novo'
+    | '/api/public/telegram/avisos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/utilizadores'
     | '/edificios/$id'
     | '/edificios/novo'
+    | '/api/public/telegram/avisos'
   id:
     | '__root__'
     | '/'
@@ -145,21 +156,23 @@ export interface FileRouteTypes {
     | '/_authenticated/utilizadores'
     | '/_authenticated/edificios/$id'
     | '/_authenticated/edificios/novo'
+    | '/api/public/telegram/avisos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicTelegramAvisosRoute: typeof ApiPublicTelegramAvisosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -169,32 +182,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/utilizadores': {
-      id: '/_authenticated/utilizadores'
-      path: '/utilizadores'
-      fullPath: '/utilizadores'
-      preLoaderRoute: typeof AuthenticatedUtilizadoresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/declaracoes': {
-      id: '/_authenticated/declaracoes'
-      path: '/declaracoes'
-      fullPath: '/declaracoes'
-      preLoaderRoute: typeof AuthenticatedDeclaracoesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+    '/_authenticated/alertas': {
+      id: '/_authenticated/alertas'
+      path: '/alertas'
+      fullPath: '/alertas'
+      preLoaderRoute: typeof AuthenticatedAlertasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/assembleias': {
@@ -204,11 +203,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssembleiasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/alertas': {
-      id: '/_authenticated/alertas'
-      path: '/alertas'
-      fullPath: '/alertas'
-      preLoaderRoute: typeof AuthenticatedAlertasRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/declaracoes': {
+      id: '/_authenticated/declaracoes'
+      path: '/declaracoes'
+      fullPath: '/declaracoes'
+      preLoaderRoute: typeof AuthenticatedDeclaracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/utilizadores': {
+      id: '/_authenticated/utilizadores'
+      path: '/utilizadores'
+      fullPath: '/utilizadores'
+      preLoaderRoute: typeof AuthenticatedUtilizadoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/edificios/$id': {
+      id: '/_authenticated/edificios/$id'
+      path: '/edificios/$id'
+      fullPath: '/edificios/$id'
+      preLoaderRoute: typeof AuthenticatedEdificiosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/edificios/novo': {
@@ -218,12 +238,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEdificiosNovoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/edificios/$id': {
-      id: '/_authenticated/edificios/$id'
-      path: '/edificios/$id'
-      fullPath: '/edificios/$id'
-      preLoaderRoute: typeof AuthenticatedEdificiosIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/api/public/telegram/avisos': {
+      id: '/api/public/telegram/avisos'
+      path: '/api/public/telegram/avisos'
+      fullPath: '/api/public/telegram/avisos'
+      preLoaderRoute: typeof ApiPublicTelegramAvisosRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -255,6 +275,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicTelegramAvisosRoute: ApiPublicTelegramAvisosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
