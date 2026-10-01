@@ -117,20 +117,29 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           }
         }
 
-        // Documentos que expiram daqui a exatamente 90 dias (cron diário → 1 aviso por documento)
-        const alvo = new Date(hojeMs + 90 * 86400000).toISOString().slice(0, 10);
+        // Documentos a expirar: aviso entre 95 e 90 dias antes (aos 90 tem de estar decidido cancelar ou renovar)
+        const limiteMax = new Date(hojeMs + 95 * 86400000).toISOString().slice(0, 10);
+        const limiteMin = new Date(hojeMs + 90 * 86400000).toISOString().slice(0, 10);
         const { data: docs } = await supabaseAdmin
           .from("documentos")
-          .select("titulo, edificio_id, data_validade")
-          .eq("data_validade", alvo);
+          .select("id,titulo,edificio_id,data_validade,avisada_validade")
+          .gte("data_validade", limiteMin)
+          .lte("data_validade", limiteMax)
+          .eq("avisada_validade", false);
         for (const d of docs ?? []) {
           try {
+            const dias = diasAte(d.data_validade as string);
             const [y, m, dd] = (d.data_validade as string).split("-");
             await sendTelegramMessage(
               chatId,
-              `⚠️ Documento expira em 90 dias\n${nomeEd(d.edificio_id as string)}\n${d.titulo}\nValidade: ${dd}/${m}/${y}`,
+              `⚠️ Contrato acaba em ${dias} dias (TESTE)\n${nomeEd(d.edificio_id as string)}\n${d.titulo}\nValidade: ${dd}/${m}/${y}\nÉ preciso cancelar ou renovar.`,
             );
             enviadas++;
+            const { error: markErr } = await supabaseAdmin
+              .from("documentos")
+              .update({ avisada_validade: true })
+              .eq("id", d.id as string);
+            if (markErr) erros.push(markErr.message);
           } catch (e) {
             erros.push(e instanceof Error ? e.message : String(e));
           }

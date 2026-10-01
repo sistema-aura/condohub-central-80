@@ -36,6 +36,13 @@
       "when": 1790851702573,
       "tag": "0004_telegram_multi_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790853141343,
+      "tag": "0005_add_avisada_validade",
+      "breakpoints": true
     }
   ]
 }
