@@ -165,7 +165,8 @@ function EmailsPage() {
                   {resumos[e.id] ? (
                     <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
                       <span className="mb-1 flex items-center gap-1 text-xs font-semibold text-primary">
-                        <Sparkles className="h-3 w-3" /> Resumo do pedido
+                        <Sparkles className="h-3 w-3" /> Resumo do email
+
                       </span>
                       {resumos[e.id]}
                     </div>
@@ -178,7 +179,8 @@ function EmailsPage() {
                       onClick={() => onResumir(e.id)}
                     >
                       <Sparkles className="mr-1 h-4 w-4" />
-                      {aResumir === e.id ? "A resumir…" : "Resumo do pedido"}
+                      {aResumir === e.id ? "A resumir…" : "Resumo do email"}
+
                     </Button>
                   )}
                 </div>
