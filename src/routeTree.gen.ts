@@ -18,6 +18,7 @@ import { Route as AuthenticatedDeclaracoesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAssembleiasRouteImport } from './routes/_authenticated/assembleias'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
+import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as AuthenticatedEdificiosNovoRouteImport } from './routes/_authenticated/edificios.novo'
 import { Route as AuthenticatedEdificiosIdRouteImport } from './routes/_authenticated/edificios.$id'
 import { Route as ApiPublicTelegramAvisosRouteImport } from './routes/api/public/telegram/avisos'
@@ -69,6 +70,11 @@ const AuthenticatedAlertasRoute = AuthenticatedAlertasRouteImport.update({
   path: '/alertas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAgendaRoute = AuthenticatedAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedEdificiosNovoRoute =
   AuthenticatedEdificiosNovoRouteImport.update({
     id: '/edificios/novo',
@@ -90,6 +96,7 @@ const ApiPublicTelegramAvisosRoute = ApiPublicTelegramAvisosRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agenda': typeof AuthenticatedAgendaRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/assembleias': typeof AuthenticatedAssembleiasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agenda': typeof AuthenticatedAgendaRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/assembleias': typeof AuthenticatedAssembleiasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/assembleias': typeof AuthenticatedAssembleiasRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/agenda'
     | '/alertas'
     | '/assembleias'
     | '/dashboard'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/agenda'
     | '/alertas'
     | '/assembleias'
     | '/dashboard'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/agenda'
     | '/_authenticated/alertas'
     | '/_authenticated/assembleias'
     | '/_authenticated/dashboard'
@@ -243,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlertasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/agenda': {
+      id: '/_authenticated/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AuthenticatedAgendaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/edificios/novo': {
       id: '/_authenticated/edificios/novo'
       path: '/edificios/novo'
@@ -268,6 +287,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
   AuthenticatedAlertasRoute: typeof AuthenticatedAlertasRoute
   AuthenticatedAssembleiasRoute: typeof AuthenticatedAssembleiasRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -279,6 +299,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgendaRoute: AuthenticatedAgendaRoute,
   AuthenticatedAlertasRoute: AuthenticatedAlertasRoute,
   AuthenticatedAssembleiasRoute: AuthenticatedAssembleiasRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
