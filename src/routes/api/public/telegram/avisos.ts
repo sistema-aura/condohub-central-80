@@ -163,16 +163,27 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           }
         }
 
-        // Emails urgentes (últimos 2 dias), cada um avisado uma vez
+        // Emails urgentes (últimos 2 dias) nas duas caixas, cada um avisado uma vez
         try {
           const { lerEmails } = await import("@/lib/emails.server");
-          const urg = (await lerEmails(30, "newer_than:2d")).filter((e) => e.urgente);
+          const contas = ["geral", "condo"] as const;
+          const urg: { chave: string; conta: string; assunto: string; de: string; edificioNome?: string; resumo: string }[] = [];
+          for (const conta of contas) {
+            try {
+              const lista = await lerEmails(30, "newer_than:2d", conta);
+              for (const e of lista.filter((x) => x.urgente)) {
+                urg.push({ chave: `${conta}:${e.id}`, conta, assunto: e.assunto, de: e.de, edificioNome: e.edificioNome, resumo: e.resumo });
+              }
+            } catch (e) {
+              erros.push(e instanceof Error ? e.message : String(e));
+            }
+          }
           if (urg.length) {
-            const { data: ja } = await supabaseAdmin.from("email_avisados").select("id").in("id", urg.map((e) => e.id));
+            const { data: ja } = await supabaseAdmin.from("email_avisados").select("id").in("id", urg.map((e) => e.chave));
             const jaSet = new Set((ja ?? []).map((r) => r.id));
-            for (const e of urg.filter((e) => !jaSet.has(e.id))) {
-              for (const c of chats) await sendOne(c, `🚨 Email URGENTE\n${e.assunto}\nDe: ${e.de}${e.edificioNome ? `\nPrédio: ${e.edificioNome}` : ""}\n${e.resumo.slice(0, 200)}`);
-              await supabaseAdmin.from("email_avisados").insert({ id: e.id });
+            for (const e of urg.filter((x) => !jaSet.has(x.chave))) {
+              for (const c of chats) await sendOne(c, `🚨 Email URGENTE (${e.conta === "condo" ? "condominiodinamico" : "geral.dinamico"})\n${e.assunto}\nDe: ${e.de}${e.edificioNome ? `\nPrédio: ${e.edificioNome}` : ""}\n${e.resumo.slice(0, 200)}`);
+              await supabaseAdmin.from("email_avisados").insert({ id: e.chave });
               enviadas++;
             }
           }
