@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { RefreshCw, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,19 +49,6 @@ function EmailsPage() {
       setAGuardar(null);
     }
   }
-  const auto = useRef(new Set<string>());
-  useEffect(() => {
-    (async () => {
-      for (const e of data?.emails ?? []) {
-        if (!e.edificioId || e.guardado || auto.current.has(e.id)) continue;
-        auto.current.add(e.id);
-        try {
-          await guardar({ data: { emailId: e.id, edificioId: e.edificioId, categoria: e.categoria } });
-          setGuardados((g) => new Set(g).add(e.id));
-        } catch { /* fica para guardar à mão */ }
-      }
-    })();
-  }, [data]);
   const [cat, setCat] = useState("Todas");
   const [q, setQ] = useState("");
   const emails = data?.emails ?? [];
