@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedVistoriasRouteImport } from './routes/_authenticated/vistorias'
 import { Route as AuthenticatedUtilizadoresRouteImport } from './routes/_authenticated/utilizadores'
 import { Route as AuthenticatedEmailsRouteImport } from './routes/_authenticated/emails'
 import { Route as AuthenticatedDeclaracoesRouteImport } from './routes/_authenticated/declaracoes'
@@ -36,6 +37,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedVistoriasRoute = AuthenticatedVistoriasRouteImport.update({
+  id: '/vistorias',
+  path: '/vistorias',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedUtilizadoresRoute =
   AuthenticatedUtilizadoresRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/declaracoes': typeof AuthenticatedDeclaracoesRoute
   '/emails': typeof AuthenticatedEmailsRoute
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
+  '/vistorias': typeof AuthenticatedVistoriasRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
   '/api/public/telegram/avisos': typeof ApiPublicTelegramAvisosRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/declaracoes': typeof AuthenticatedDeclaracoesRoute
   '/emails': typeof AuthenticatedEmailsRoute
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
+  '/vistorias': typeof AuthenticatedVistoriasRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
   '/api/public/telegram/avisos': typeof ApiPublicTelegramAvisosRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/_authenticated/declaracoes': typeof AuthenticatedDeclaracoesRoute
   '/_authenticated/emails': typeof AuthenticatedEmailsRoute
   '/_authenticated/utilizadores': typeof AuthenticatedUtilizadoresRoute
+  '/_authenticated/vistorias': typeof AuthenticatedVistoriasRoute
   '/_authenticated/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/_authenticated/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
   '/api/public/telegram/avisos': typeof ApiPublicTelegramAvisosRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/declaracoes'
     | '/emails'
     | '/utilizadores'
+    | '/vistorias'
     | '/edificios/$id'
     | '/edificios/novo'
     | '/api/public/telegram/avisos'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/declaracoes'
     | '/emails'
     | '/utilizadores'
+    | '/vistorias'
     | '/edificios/$id'
     | '/edificios/novo'
     | '/api/public/telegram/avisos'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/_authenticated/declaracoes'
     | '/_authenticated/emails'
     | '/_authenticated/utilizadores'
+    | '/_authenticated/vistorias'
     | '/_authenticated/edificios/$id'
     | '/_authenticated/edificios/novo'
     | '/api/public/telegram/avisos'
@@ -212,6 +224,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/vistorias': {
+      id: '/_authenticated/vistorias'
+      path: '/vistorias'
+      fullPath: '/vistorias'
+      preLoaderRoute: typeof AuthenticatedVistoriasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/utilizadores': {
       id: '/_authenticated/utilizadores'
@@ -294,6 +313,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDeclaracoesRoute: typeof AuthenticatedDeclaracoesRoute
   AuthenticatedEmailsRoute: typeof AuthenticatedEmailsRoute
   AuthenticatedUtilizadoresRoute: typeof AuthenticatedUtilizadoresRoute
+  AuthenticatedVistoriasRoute: typeof AuthenticatedVistoriasRoute
   AuthenticatedEdificiosIdRoute: typeof AuthenticatedEdificiosIdRoute
   AuthenticatedEdificiosNovoRoute: typeof AuthenticatedEdificiosNovoRoute
 }
@@ -306,6 +326,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDeclaracoesRoute: AuthenticatedDeclaracoesRoute,
   AuthenticatedEmailsRoute: AuthenticatedEmailsRoute,
   AuthenticatedUtilizadoresRoute: AuthenticatedUtilizadoresRoute,
+  AuthenticatedVistoriasRoute: AuthenticatedVistoriasRoute,
   AuthenticatedEdificiosIdRoute: AuthenticatedEdificiosIdRoute,
   AuthenticatedEdificiosNovoRoute: AuthenticatedEdificiosNovoRoute,
 }
