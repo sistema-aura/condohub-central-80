@@ -43,6 +43,13 @@
       "when": 1790853141343,
       "tag": "0005_add_avisada_validade",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790952277724,
+      "tag": "0006_email_avisados",
+      "breakpoints": true
     }
   ]
 }
