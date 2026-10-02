@@ -35,15 +35,26 @@ function classificar(txt: string) {
 type Ed = { id: string; nome: string; identificacao_interna: string | null };
 
 function acharEdificio(txt: string, eds: Ed[]): Ed | null {
-  const m = txt.match(/(?:predio|condominio|edificio|n\.?\s?º|nº)\s*0*(\d{1,3})\b/);
+  // 1) nome da rua (o número na morada é a porta, não o número interno)
+  let melhor: Ed | null = null;
+  let tam = 0;
+  for (const e of eds) {
+    const rua = norm(e.nome)
+      .replace(/^(condominio|cond\.?)\s*/, "")
+      .split(/,|\s-\s|n\.?\s?º|\bn\.?\s?o\b|\bnº/)[0]
+      .replace(/\s+/g, " ")
+      .trim();
+    if (rua.length >= 8 && rua.length > tam && txt.replace(/\s+/g, " ").includes(rua)) {
+      melhor = e;
+      tam = rua.length;
+    }
+  }
+  if (melhor) return melhor;
+  // 2) número interno escrito explicitamente: "prédio 106", "condomínio 089"
+  const m = txt.match(/\b(?:predio|condominio|edificio)\s+0*(\d{1,3})\b/);
   if (m) {
     const n = Number(m[1]);
-    const e = eds.find((e) => e.identificacao_interna && Number(e.identificacao_interna.replace(/\D/g, "")) === n);
-    if (e) return e;
-  }
-  for (const e of eds) {
-    const rua = norm(e.nome).split(/,|n\.?º|nº|\bn\b/)[0].trim();
-    if (rua.length >= 10 && txt.includes(rua)) return e;
+    return eds.find((e) => e.identificacao_interna && Number(e.identificacao_interna.replace(/\D/g, "")) === n) ?? null;
   }
   return null;
 }
