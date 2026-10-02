@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { RefreshCw, Save, Search } from "lucide-react";
+import { RefreshCw, Save, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { getEmails, guardarEmail } from "@/lib/emails.functions";
+import { getEmails, guardarEmail, resumirEmail } from "@/lib/emails.functions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,20 @@ function EmailsPage() {
   const [escolha, setEscolha] = useState<Record<string, string>>({});
   const [aGuardar, setAGuardar] = useState<string | null>(null);
   const [guardados, setGuardados] = useState<Set<string>>(new Set());
+  const resumir = useServerFn(resumirEmail);
+  const [resumos, setResumos] = useState<Record<string, string>>({});
+  const [aResumir, setAResumir] = useState<string | null>(null);
+  async function onResumir(id: string) {
+    setAResumir(id);
+    try {
+      const r = await resumir({ data: { emailId: id } });
+      setResumos((s) => ({ ...s, [id]: r.resumo }));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao resumir");
+    } finally {
+      setAResumir(null);
+    }
+  }
   async function onGuardar(id: string, edificioId: string, categoria: string) {
     setAGuardar(id);
     try {
@@ -148,6 +162,25 @@ function EmailsPage() {
                     <span className="font-medium">{e.de}</span>
                     <span className="text-muted-foreground"> — {e.resumo}</span>
                   </p>
+                  {resumos[e.id] ? (
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+                      <span className="mb-1 flex items-center gap-1 text-xs font-semibold text-primary">
+                        <Sparkles className="h-3 w-3" /> Resumo do pedido
+                      </span>
+                      {resumos[e.id]}
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-fit text-primary"
+                      disabled={aResumir === e.id}
+                      onClick={() => onResumir(e.id)}
+                    >
+                      <Sparkles className="mr-1 h-4 w-4" />
+                      {aResumir === e.id ? "A resumir…" : "Resumo do pedido"}
+                    </Button>
+                  )}
                 </div>
 
                 <div className="flex shrink-0 flex-col gap-2 border-t pt-4 sm:flex-row lg:w-64 lg:flex-col lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">

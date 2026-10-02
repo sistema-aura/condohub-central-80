@@ -13,6 +13,38 @@ export const getEmails = createServerFn({ method: "GET" })
     }
   });
 
+export const resumirEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { emailId: string }) => d)
+  .handler(async ({ data }) => {
+    const { lerEmailCompleto } = await import("./emails.server");
+    const e = await lerEmailCompleto(data.emailId);
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${process.env.LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai/gpt-6-astra",
+        input: [
+          {
+            role: "system",
+            content:
+              "És assistente de uma empresa de gestão de condomínios. Resume o email em português de Portugal, em 2 a 4 frases curtas: quem escreve, sobre que prédio/assunto, e o que a pessoa pede ou precisa que seja feito. Se houver prazos, valores ou pedidos concretos, menciona-os. Sê direto, sem introduções.",
+          },
+          { role: "user", content: `De: ${e.de}\nAssunto: ${e.assunto}\n\n${e.texto}` },
+        ],
+      }),
+    });
+    if (!res.ok) throw new Error(`IA erro [${res.status}]: ${await res.text()}`);
+    const j = (await res.json()) as {
+      output_text?: string;
+      output?: { content?: { type: string; text?: string }[] }[];
+    };
+    const texto =
+      j.output_text?.trim() ??
+      j.output?.flatMap((o) => o.content ?? []).find((c) => c.type === "output_text")?.text?.trim();
+    return { resumo: texto ?? "Sem resumo." };
+  });
+
 const TIPOS: Record<string, "elevador" | "seguro" | "banco" | "outros"> = {
   Elevadores: "elevador",
   Seguros: "seguro",
