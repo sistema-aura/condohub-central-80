@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Send, Plus, Building2, StickyNote, Flag, UserRound, CalendarClock, Check, Eye, Footprints, Trash2, Pencil, Zap, ArrowRight, Search } from "lucide-react";
+import { Send, Plus, Building2, StickyNote, Flag, CalendarClock, Check, Eye, Footprints, Trash2, Pencil, Zap, ArrowRight, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { notificarPessoas } from "@/lib/telegram.functions";
@@ -233,9 +233,9 @@ function AgendaPage() {
                 <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Quem pede e para quem</Label>
                 <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3 rounded-2xl border bg-muted/30 p-3">
                   {(["de_pessoa", "para_pessoa"] as const).map((k, i) => (
-                    <>
-                      {i === 1 && <ArrowRight key="seta" className="mt-9 h-4 w-4 text-muted-foreground" />}
-                      <div key={k} className="space-y-2">
+                    <Fragment key={k}>
+                      {i === 1 && <ArrowRight className="mt-9 h-4 w-4 text-muted-foreground" />}
+                      <div className="space-y-2">
                         <div className="text-[11px] text-muted-foreground">{k === "de_pessoa" ? "Pedido por" : "Para"}</div>
                         <div className="flex flex-col gap-1.5">
                           {PESSOAS.map((p) => (
@@ -245,7 +245,7 @@ function AgendaPage() {
                           ))}
                         </div>
                       </div>
-                    </>
+                    </Fragment>
                   ))}
                 </div>
               </div>
