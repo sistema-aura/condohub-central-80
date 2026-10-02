@@ -257,6 +257,62 @@ export type Database = {
         }
         Relationships: []
       }
+      tarefas: {
+        Row: {
+          concluida_em: string | null
+          created_at: string
+          created_by: string | null
+          de_pessoa: string
+          descricao: string | null
+          edificio_id: string | null
+          estado: string
+          id: string
+          para_pessoa: string
+          prazo: string | null
+          prioridade: boolean
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          concluida_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          de_pessoa: string
+          descricao?: string | null
+          edificio_id?: string | null
+          estado?: string
+          id?: string
+          para_pessoa: string
+          prazo?: string | null
+          prioridade?: boolean
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          concluida_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          de_pessoa?: string
+          descricao?: string | null
+          edificio_id?: string | null
+          estado?: string
+          id?: string
+          para_pessoa?: string
+          prazo?: string | null
+          prioridade?: boolean
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_edificio_id_fkey"
+            columns: ["edificio_id"]
+            isOneToOne: false
+            referencedRelation: "edificios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       telegram_config: {
         Row: {
           chat_id: number

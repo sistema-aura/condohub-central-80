@@ -50,6 +50,13 @@
       "when": 1790952277724,
       "tag": "0006_email_avisados",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790956318935,
+      "tag": "0007_create_tarefas",
+      "breakpoints": true
     }
   ]
 }
