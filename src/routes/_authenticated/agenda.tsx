@@ -322,7 +322,7 @@ function AgendaPage() {
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="outline" className="rounded-full" onClick={() => setAviso(null)}>Não avisar</Button>
+            <Button variant="outline" className="rounded-full" onClick={naoAvisar}>Não avisar</Button>
             <Button className="rounded-full" disabled={enviando || !aviso?.pessoas.length} onClick={enviarAviso}><Send className="mr-1 h-4 w-4" />{enviando ? "A enviar…" : "Enviar aviso"}</Button>
           </DialogFooter>
         </DialogContent>
