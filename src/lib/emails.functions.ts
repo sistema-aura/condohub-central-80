@@ -28,7 +28,7 @@ export const guardarEmail = createServerFn({ method: "POST" })
     const e = await lerEmailCompleto(data.emailId);
     const sb = context.supabase;
     const tipo = TIPOS[data.categoria] ?? "outros";
-    const info = `Email de ${e.de}\n${e.data}\n\n${e.texto}`;
+    const info = `[gmail:${data.emailId}]\nEmail de ${e.de}\n${e.data}\n\n${e.texto}`;
     const dia = e.data ? new Date(e.data).toISOString().slice(0, 10) : null;
     const base = { edificio_id: data.edificioId, tipo, informacao: info, data_documento: dia, created_by: context.userId };
     if (!e.anexos.length) {

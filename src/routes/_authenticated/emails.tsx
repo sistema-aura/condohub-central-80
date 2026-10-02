@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCw, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +49,19 @@ function EmailsPage() {
       setAGuardar(null);
     }
   }
+  const auto = useRef(new Set<string>());
+  useEffect(() => {
+    (async () => {
+      for (const e of data?.emails ?? []) {
+        if (!e.edificioId || e.guardado || auto.current.has(e.id)) continue;
+        auto.current.add(e.id);
+        try {
+          await guardar({ data: { emailId: e.id, edificioId: e.edificioId, categoria: e.categoria } });
+          setGuardados((g) => new Set(g).add(e.id));
+        } catch { /* fica para guardar à mão */ }
+      }
+    })();
+  }, [data]);
   const [cat, setCat] = useState("Todas");
   const [q, setQ] = useState("");
   const emails = data?.emails ?? [];
@@ -88,6 +101,7 @@ function EmailsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 {e.urgente && <Badge variant="destructive">URGENTE</Badge>}
                 <Badge variant="secondary">{e.categoria}</Badge>
+                {e.marcadores.map((m) => <Badge key={m} variant="outline">🏷 {m}</Badge>)}
                 {e.edificioId && (
                   <Link to="/edificios/$id" params={{ id: e.edificioId }}>
                     <Badge variant="outline">{e.edificioNome}</Badge>
@@ -123,11 +137,11 @@ function EmailsPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={!(escolha[e.id] ?? e.edificioId) || aGuardar === e.id || guardados.has(e.id)}
+                  disabled={!(escolha[e.id] ?? e.edificioId) || aGuardar === e.id || (guardados.has(e.id) || e.guardado)}
                   onClick={() => onGuardar(e.id, (escolha[e.id] ?? e.edificioId)!, e.categoria)}
                 >
                   <Save className="mr-1 h-4 w-4" />
-                  {guardados.has(e.id) ? "Guardado" : aGuardar === e.id ? "A guardar…" : "Guardar nos documentos"}
+                  {(guardados.has(e.id) || e.guardado) ? "Guardado" : aGuardar === e.id ? "A guardar…" : "Guardar nos documentos"}
                 </Button>
               </div>
             </CardContent>
