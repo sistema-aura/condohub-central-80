@@ -163,6 +163,23 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           }
         }
 
+        // Emails urgentes (últimos 2 dias), cada um avisado uma vez
+        try {
+          const { lerEmails } = await import("@/lib/emails.server");
+          const urg = (await lerEmails(30, "newer_than:2d")).filter((e) => e.urgente);
+          if (urg.length) {
+            const { data: ja } = await supabaseAdmin.from("email_avisados").select("id").in("id", urg.map((e) => e.id));
+            const jaSet = new Set((ja ?? []).map((r) => r.id));
+            for (const e of urg.filter((e) => !jaSet.has(e.id))) {
+              for (const c of chats) await sendOne(c, `🚨 Email URGENTE\n${e.assunto}\nDe: ${e.de}${e.edificioNome ? `\nPrédio: ${e.edificioNome}` : ""}\n${e.resumo.slice(0, 200)}`);
+              await supabaseAdmin.from("email_avisados").insert({ id: e.id });
+              enviadas++;
+            }
+          }
+        } catch (e) {
+          erros.push(e instanceof Error ? e.message : String(e));
+        }
+
         return Response.json({ ok: true, enviadas, erros });
       },
     },
