@@ -29,6 +29,7 @@ export function AppSidebar() {
     { title: "Edifícios", url: "/dashboard", icon: LayoutDashboard },
     { title: "Alertas", url: "/alertas", icon: AlertTriangle },
     { title: "Agenda", url: "/agenda", icon: ListTodo },
+    { title: "Vistorias", url: "/vistorias", icon: Wrench },
     { title: "Declarações", url: "/declaracoes", icon: FileCheck },
     { title: "Assembleias", url: "/assembleias", icon: CalendarDays },
     { title: "Emails", url: "/emails", icon: Mail },

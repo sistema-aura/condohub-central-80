@@ -337,6 +337,50 @@ export type Database = {
         }
         Relationships: []
       }
+      vistorias: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: string
+          edificio_id: string | null
+          hora_fim: string | null
+          hora_inicio: string | null
+          id: string
+          notas: string | null
+          pessoa: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data?: string
+          edificio_id?: string | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          notas?: string | null
+          pessoa?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: string
+          edificio_id?: string | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          notas?: string | null
+          pessoa?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vistorias_edificio_id_fkey"
+            columns: ["edificio_id"]
+            isOneToOne: false
+            referencedRelation: "edificios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
