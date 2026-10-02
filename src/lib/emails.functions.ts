@@ -19,12 +19,12 @@ export const resumirEmail = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { lerEmailCompleto } = await import("./emails.server");
     const e = await lerEmailCompleto(data.emailId);
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
+        model: "openai/gpt-6-astra",
+        input: [
           {
             role: "system",
             content:
@@ -35,8 +35,14 @@ export const resumirEmail = createServerFn({ method: "POST" })
       }),
     });
     if (!res.ok) throw new Error(`IA erro [${res.status}]: ${await res.text()}`);
-    const j = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    return { resumo: j.choices?.[0]?.message?.content?.trim() ?? "Sem resumo." };
+    const j = (await res.json()) as {
+      output_text?: string;
+      output?: { content?: { type: string; text?: string }[] }[];
+    };
+    const texto =
+      j.output_text?.trim() ??
+      j.output?.flatMap((o) => o.content ?? []).find((c) => c.type === "output_text")?.text?.trim();
+    return { resumo: texto ?? "Sem resumo." };
   });
 
 const TIPOS: Record<string, "elevador" | "seguro" | "banco" | "outros"> = {
