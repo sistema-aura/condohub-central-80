@@ -34,9 +34,16 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
         if (rpcError || valid !== true) return new Response("Unauthorized", { status: 401 });
 
         // Chats ligados (todos recebem)
-        const { data: cfgs } = await supabaseAdmin.from("telegram_config").select("chat_id");
+        const { data: cfgs } = await supabaseAdmin.from("telegram_config").select("chat_id,chat_title");
         const chats = (cfgs ?? []).map((c) => c.chat_id as number);
         if (!chats.length) return Response.json({ ok: true, enviadas: 0, motivo: "sem chat" });
+        // Pessoa da empresa associada a cada chat (leo=Leonor, dina=Dina, eduardo=Eduardo)
+        const CHAT_PESSOA: Record<string, string> = { leo: "Leonor", dina: "Dina", eduardo: "Eduardo" };
+        const chatPessoa = new Map<number, string>();
+        for (const c of cfgs ?? []) {
+          const p = CHAT_PESSOA[String(c.chat_title ?? "").trim().toLowerCase()];
+          if (p) chatPessoa.set(c.chat_id as number, p);
+        }
         const chatId = 0;
         const sendTelegramMessage = async (_id: number, text: string) => {
           for (const c of chats) await sendOne(c, text);
@@ -74,21 +81,38 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
             return e ? `${e.identificacao_interna ? e.identificacao_interna + " – " : ""}${e.nome}` : "";
           };
           const ESTADO: Record<string, string> = { pendente: "🕓 Por ver", visto: "👀 Visto", em_curso: "🚶 No prédio", };
-          const { data: tars } = await supabaseAdmin.from("tarefas").select("titulo,edificio_id,de_pessoa,para_pessoa,estado,prioridade,prazo").neq("estado", "concluida").order("prazo", { nullsFirst: false });
+          const { data: tars } = await supabaseAdmin.from("tarefas").select("titulo,edificio_id,de_pessoa,para_pessoa,estado,prioridade,prazo,avisar_pessoas").neq("estado", "concluida").order("prazo", { nullsFirst: false });
           const { data: decs } = await supabaseAdmin.from("declaracoes").select("edificio_id,fracao,urgente,reconhecida").eq("feita", false);
-          const msgs: string[] = [];
-          if (tars?.length) {
-            const linhas = tars.map((t) => `• ${t.prioridade ? "⚡" : ""}${t.titulo}${t.edificio_id ? ` (${ed(t.edificio_id)})` : ""}\n   ${t.de_pessoa} → ${t.para_pessoa} · ${ESTADO[t.estado] ?? t.estado}${t.prazo ? ` · até ${fmtData.format(new Date(t.prazo + "T12:00:00Z"))}` : ""}`);
-            msgs.push(`📋 Agenda – por concluir (${tars.length})\n${linhas.join("\n")}`);
-          }
+          const linhaTarefa = (t: (typeof tars extends (infer U)[] | null ? U : never)) =>
+            `• ${t.prioridade ? "⚡" : ""}${t.titulo}${t.edificio_id ? ` (${ed(t.edificio_id)})` : ""}\n   ${t.de_pessoa} → ${t.para_pessoa} · ${ESTADO[t.estado] ?? t.estado}${t.prazo ? ` · até ${fmtData.format(new Date(t.prazo + "T12:00:00Z"))}` : ""}`;
+          // Pessoas que recebem os avisos de cada tarefa: as escolhidas ao criar;
+          // se não foi escolhido ninguém, vai para a pessoa a quem a tarefa se destina.
+          const destinatarios = (t: { para_pessoa: string; avisar_pessoas: string[] | null }) =>
+            t.avisar_pessoas && t.avisar_pessoas.length ? t.avisar_pessoas : [t.para_pessoa];
+          let msgDecs: string | null = null;
           if (decs?.length) {
             const linhas = decs.map((d) => `• ${ed(d.edificio_id as string)}${d.fracao ? ` – ${d.fracao}` : ""}${d.urgente ? " ⚡URGENTE" : ""}${d.reconhecida ? " (reconhecida)" : ""}`);
-            msgs.push(`📝 Declarações por fazer (${decs.length})\n${linhas.join("\n")}`);
+            msgDecs = `📝 Declarações por fazer (${decs.length})\n${linhas.join("\n")}`;
           }
-          if (!msgs.length) msgs.push(`✅ Aviso da Agenda das ${fmtHora.format(new Date())} correu: sem tarefas nem declarações por fazer.`);
           const errs: string[] = [];
-          for (const m of msgs) for (const c of chats) { try { await sendOne(c, m.slice(0, 4000)); } catch (e) { errs.push(String(e)); } }
-          return Response.json({ ok: true, enviadas: msgs.length, erros: errs });
+          let enviadasAgenda = 0;
+          for (const c of chats) {
+            const pessoa = chatPessoa.get(c);
+            // Tarefas deste chat: só as marcadas para esta pessoa (ou sem destinatário conhecido vão para todos)
+            const minhas = (tars ?? []).filter((t) => {
+              const dest = destinatarios(t as { para_pessoa: string; avisar_pessoas: string[] | null });
+              if (!pessoa) return true; // chat sem pessoa associada recebe tudo
+              return dest.includes(pessoa);
+            });
+            const msgs: string[] = [];
+            if (minhas.length) msgs.push(`📋 Agenda – por concluir (${minhas.length})\n${minhas.map(linhaTarefa).join("\n")}`);
+            if (msgDecs) msgs.push(msgDecs);
+            if (!msgs.length) msgs.push(`✅ Aviso da Agenda das ${fmtHora.format(new Date())} correu: sem tarefas nem declarações por fazer.`);
+            for (const m of msgs) {
+              try { await sendOne(c, m.slice(0, 4000)); enviadasAgenda++; } catch (e) { errs.push(String(e)); }
+            }
+          }
+          return Response.json({ ok: true, enviadas: enviadasAgenda, erros: errs });
         }
         const { data: ass, error: assErr } = await supabaseAdmin
           .from("assembleias")

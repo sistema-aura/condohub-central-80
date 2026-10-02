@@ -55,7 +55,7 @@ function AgendaPage() {
   const [vista, setVista] = useState<"abertas" | "concluidas">("abertas");
   const [q, setQ] = useState("");
   const [form, setForm] = useState<Form | null>(null);
-  const [aviso, setAviso] = useState<{ texto: string; pessoas: string[] } | null>(null);
+  const [aviso, setAviso] = useState<{ texto: string; pessoas: string[]; tarefaId: string | null } | null>(null);
   const [enviando, setEnviando] = useState(false);
   const notificar = useServerFn(notificarPessoas);
 
@@ -101,24 +101,36 @@ function AgendaPage() {
   async function guardar() {
     if (!form || !form.titulo.trim()) return toast.error("Escreve o que é preciso fazer");
     const { id, ...rest } = form;
-    const r = id ? await supabase.from("tarefas").update(rest).eq("id", id) : await supabase.from("tarefas").insert(rest);
+    const r = id
+      ? await supabase.from("tarefas").update(rest).eq("id", id).select("id").single()
+      : await supabase.from("tarefas").insert(rest).select("id").single();
     if (r.error) return toast.error(r.error.message);
     toast.success(id ? "Tarefa atualizada" : "Tarefa criada");
     const texto = `📋 ${id ? "Tarefa atualizada" : "Nova tarefa"}${rest.prioridade ? " ⚡URGENTE" : ""}\n${rest.titulo}${rest.edificio_id ? `\nPrédio: ${nomeEd(rest.edificio_id)}` : ""}\n${rest.de_pessoa} → ${rest.para_pessoa}${rest.prazo ? `\nAté ${new Date(rest.prazo + "T12:00:00").toLocaleDateString("pt-PT")}` : ""}${rest.descricao ? `\n\n${rest.descricao}` : ""}`;
-    setAviso({ texto, pessoas: [rest.para_pessoa] });
+    setAviso({ texto, pessoas: [rest.para_pessoa], tarefaId: (r.data as { id: string } | null)?.id ?? id ?? null });
     setForm(null);
     qc.invalidateQueries({ queryKey: ["tarefas"] });
+  }
+  // Guarda na tarefa as pessoas escolhidas para os avisos diários do Telegram.
+  async function guardarAvisarPessoas(pessoas: string[]) {
+    if (!aviso?.tarefaId) return;
+    await supabase.from("tarefas").update({ avisar_pessoas: pessoas }).eq("id", aviso.tarefaId);
   }
   async function enviarAviso() {
     if (!aviso || !aviso.pessoas.length) return toast.error("Escolhe pelo menos uma pessoa");
     setEnviando(true);
     try {
+      await guardarAvisarPessoas(aviso.pessoas);
       const r = await notificar({ data: aviso });
       if (r.enviados.length) toast.success(`Aviso enviado a ${r.enviados.join(", ")}`);
       if (r.falhas.length) toast.error(`Não foi possível avisar: ${r.falhas.join(", ")}`);
       setAviso(null);
     } catch (e) { toast.error(e instanceof Error ? e.message : "Erro ao enviar"); }
     finally { setEnviando(false); }
+  }
+  async function naoAvisar() {
+    await guardarAvisarPessoas([]);
+    setAviso(null);
   }
   async function apagar(id: string) {
     if (!confirm("Apagar esta tarefa?")) return;
@@ -310,7 +322,7 @@ function AgendaPage() {
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="outline" className="rounded-full" onClick={() => setAviso(null)}>Não avisar</Button>
+            <Button variant="outline" className="rounded-full" onClick={naoAvisar}>Não avisar</Button>
             <Button className="rounded-full" disabled={enviando || !aviso?.pessoas.length} onClick={enviarAviso}><Send className="mr-1 h-4 w-4" />{enviando ? "A enviar…" : "Enviar aviso"}</Button>
           </DialogFooter>
         </DialogContent>

@@ -259,6 +259,7 @@ export type Database = {
       }
       tarefas: {
         Row: {
+          avisar_pessoas: string[] | null
           concluida_em: string | null
           created_at: string
           created_by: string | null
@@ -274,6 +275,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avisar_pessoas?: string[] | null
           concluida_em?: string | null
           created_at?: string
           created_by?: string | null
@@ -289,6 +291,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avisar_pessoas?: string[] | null
           concluida_em?: string | null
           created_at?: string
           created_by?: string | null
