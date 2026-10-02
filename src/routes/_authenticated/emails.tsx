@@ -26,7 +26,9 @@ export const Route = createFileRoute("/_authenticated/emails")({
 
 function EmailsPage() {
   const fn = useServerFn(getEmails);
-  const { data, isLoading, refetch, isFetching } = useQuery({ queryKey: ["emails"], queryFn: () => fn() });
+  const [conta, setConta] = useState<"geral" | "condo" | "ambos">("geral");
+  const { data, isLoading, refetch, isFetching } = useQuery({ queryKey: ["emails", conta], queryFn: () => fn({ data: { conta } }) });
+  const contaDe = (id: string) => data?.emails.find((e) => e.id === id)?.conta;
   const guardar = useServerFn(guardarEmail);
   const { data: eds } = useQuery({
     queryKey: ["edificios-min"],
@@ -42,7 +44,7 @@ function EmailsPage() {
   async function onResumir(id: string) {
     setAResumir(id);
     try {
-      const r = await resumir({ data: { emailId: id } });
+      const r = await resumir({ data: { emailId: id, conta: contaDe(id) } });
       setResumos((s) => ({ ...s, [id]: r.resumo }));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao resumir");
@@ -53,7 +55,7 @@ function EmailsPage() {
   async function onGuardar(id: string, edificioId: string, categoria: string) {
     setAGuardar(id);
     try {
-      const r = await guardar({ data: { emailId: id, edificioId, categoria } });
+      const r = await guardar({ data: { emailId: id, edificioId, categoria, conta: contaDe(id) } });
       setGuardados((g) => new Set(g).add(id));
       toast.success(r.anexos ? `${r.anexos} anexo(s) guardado(s) nos documentos do prédio` : "Email guardado nos documentos do prédio");
     } catch (err) {
@@ -81,9 +83,20 @@ function EmailsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold tracking-tight">Emails</h1>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-sm text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
-            geral.dinamico@gmail.com
+          <div className="flex rounded-full border bg-card p-1 text-sm">
+            {([
+              ["geral", "geral.dinamico@gmail.com"],
+              ["condo", "condominiodinamico@gmail.com"],
+              ["ambos", "Juntos"],
+            ] as const).map(([k, l]) => (
+              <button
+                key={k}
+                onClick={() => setConta(k)}
+                className={`rounded-full px-3 py-1 transition-colors ${conta === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {l}
+              </button>
+            ))}
           </div>
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
@@ -124,7 +137,7 @@ function EmailsPage() {
           const guardado = guardados.has(e.id) || e.guardado;
           return (
             <div
-              key={e.id}
+              key={`${e.conta}-${e.id}`}
               className={`rounded-2xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md ${
                 e.urgente ? "border-destructive/60" : ""
               }`}
@@ -133,6 +146,10 @@ function EmailsPage() {
                 <div className="min-w-0 flex-grow space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     {e.urgente && <Badge variant="destructive">URGENTE</Badge>}
+                    {conta === "ambos" && !e.nasDuas && (
+                      <Badge variant="outline">{e.conta === "geral" ? "geral.dinamico" : "condominiodinamico"}</Badge>
+                    )}
+                    {e.nasDuas && <Badge variant="secondary">Nos 2 emails</Badge>}
                     <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
                       {e.categoria}
                     </Badge>
