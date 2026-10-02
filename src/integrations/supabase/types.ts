@@ -242,6 +242,21 @@ export type Database = {
         }
         Relationships: []
       }
+      email_avisados: {
+        Row: {
+          created_at: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       telegram_config: {
         Row: {
           chat_id: number
