@@ -167,7 +167,7 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
         try {
           const { lerEmails } = await import("@/lib/emails.server");
           const contas = ["geral", "condo"] as const;
-          const urg: { chave: string; conta: string; assunto: string; de: string; edificioNome?: string; resumo: string }[] = [];
+          const urg: { chave: string; conta: string; assunto: string; de: string; edificioNome?: string | null; resumo: string }[] = [];
           for (const conta of contas) {
             try {
               const lista = await lerEmails(30, "newer_than:2d", conta);
