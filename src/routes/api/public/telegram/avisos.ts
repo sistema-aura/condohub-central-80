@@ -83,7 +83,7 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           const ESTADO: Record<string, string> = { pendente: "🕓 Por ver", visto: "👀 Visto", em_curso: "🚶 No prédio", };
           const { data: tars } = await supabaseAdmin.from("tarefas").select("titulo,edificio_id,de_pessoa,para_pessoa,estado,prioridade,prazo,avisar_pessoas").neq("estado", "concluida").order("prazo", { nullsFirst: false });
           const { data: decs } = await supabaseAdmin.from("declaracoes").select("edificio_id,fracao,urgente,reconhecida").eq("feita", false);
-          const { data: vists } = await supabaseAdmin.from("vistorias").select("edificio_id,data,notas,avisar_pessoas").eq("concluida", false).neq("avisar_pessoas", "{}");
+          const { data: vists } = await supabaseAdmin.from("vistorias").select("edificio_id,data,notas,avisar_pessoas").eq("concluida", false).neq("avisar_pessoas", []);
           const linhaTarefa = (t: (typeof tars extends (infer U)[] | null ? U : never)) =>
             `• ${t.prioridade ? "⚡" : ""}${t.titulo}${t.edificio_id ? ` (${ed(t.edificio_id)})` : ""}\n   ${t.de_pessoa} → ${t.para_pessoa} · ${ESTADO[t.estado] ?? t.estado}${t.prazo ? ` · até ${fmtData.format(new Date(t.prazo + "T12:00:00Z"))}` : ""}`;
           // Pessoas que recebem os avisos de cada tarefa: as escolhidas ao criar;
