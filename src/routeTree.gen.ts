@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUtilizadoresRouteImport } from './routes/_authenticated/utilizadores'
+import { Route as AuthenticatedEmailsRouteImport } from './routes/_authenticated/emails'
 import { Route as AuthenticatedDeclaracoesRouteImport } from './routes/_authenticated/declaracoes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAssembleiasRouteImport } from './routes/_authenticated/assembleias'
@@ -41,6 +42,11 @@ const AuthenticatedUtilizadoresRoute =
     path: '/utilizadores',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEmailsRoute = AuthenticatedEmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDeclaracoesRoute =
   AuthenticatedDeclaracoesRouteImport.update({
     id: '/declaracoes',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/assembleias': typeof AuthenticatedAssembleiasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/declaracoes': typeof AuthenticatedDeclaracoesRoute
+  '/emails': typeof AuthenticatedEmailsRoute
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/assembleias': typeof AuthenticatedAssembleiasRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/declaracoes': typeof AuthenticatedDeclaracoesRoute
+  '/emails': typeof AuthenticatedEmailsRoute
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/_authenticated/assembleias': typeof AuthenticatedAssembleiasRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/declaracoes': typeof AuthenticatedDeclaracoesRoute
+  '/_authenticated/emails': typeof AuthenticatedEmailsRoute
   '/_authenticated/utilizadores': typeof AuthenticatedUtilizadoresRoute
   '/_authenticated/edificios/$id': typeof AuthenticatedEdificiosIdRoute
   '/_authenticated/edificios/novo': typeof AuthenticatedEdificiosNovoRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/assembleias'
     | '/dashboard'
     | '/declaracoes'
+    | '/emails'
     | '/utilizadores'
     | '/edificios/$id'
     | '/edificios/novo'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/assembleias'
     | '/dashboard'
     | '/declaracoes'
+    | '/emails'
     | '/utilizadores'
     | '/edificios/$id'
     | '/edificios/novo'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assembleias'
     | '/_authenticated/dashboard'
     | '/_authenticated/declaracoes'
+    | '/_authenticated/emails'
     | '/_authenticated/utilizadores'
     | '/_authenticated/edificios/$id'
     | '/_authenticated/edificios/novo'
@@ -194,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/utilizadores'
       fullPath: '/utilizadores'
       preLoaderRoute: typeof AuthenticatedUtilizadoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/emails': {
+      id: '/_authenticated/emails'
+      path: '/emails'
+      fullPath: '/emails'
+      preLoaderRoute: typeof AuthenticatedEmailsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/declaracoes': {
@@ -253,6 +272,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssembleiasRoute: typeof AuthenticatedAssembleiasRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDeclaracoesRoute: typeof AuthenticatedDeclaracoesRoute
+  AuthenticatedEmailsRoute: typeof AuthenticatedEmailsRoute
   AuthenticatedUtilizadoresRoute: typeof AuthenticatedUtilizadoresRoute
   AuthenticatedEdificiosIdRoute: typeof AuthenticatedEdificiosIdRoute
   AuthenticatedEdificiosNovoRoute: typeof AuthenticatedEdificiosNovoRoute
@@ -263,6 +283,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssembleiasRoute: AuthenticatedAssembleiasRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDeclaracoesRoute: AuthenticatedDeclaracoesRoute,
+  AuthenticatedEmailsRoute: AuthenticatedEmailsRoute,
   AuthenticatedUtilizadoresRoute: AuthenticatedUtilizadoresRoute,
   AuthenticatedEdificiosIdRoute: AuthenticatedEdificiosIdRoute,
   AuthenticatedEdificiosNovoRoute: AuthenticatedEdificiosNovoRoute,
