@@ -2,8 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
-import { getEmails } from "@/lib/emails.functions";
+import { RefreshCw, Save } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { getEmails, guardarEmail } from "@/lib/emails.functions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,27 @@ export const Route = createFileRoute("/_authenticated/emails")({
 function EmailsPage() {
   const fn = useServerFn(getEmails);
   const { data, isLoading, refetch, isFetching } = useQuery({ queryKey: ["emails"], queryFn: () => fn() });
+  const guardar = useServerFn(guardarEmail);
+  const { data: eds } = useQuery({
+    queryKey: ["edificios-min"],
+    queryFn: async () =>
+      (await supabase.from("edificios").select("id,nome,identificacao_interna").order("identificacao_interna")).data ?? [],
+  });
+  const [escolha, setEscolha] = useState<Record<string, string>>({});
+  const [aGuardar, setAGuardar] = useState<string | null>(null);
+  const [guardados, setGuardados] = useState<Set<string>>(new Set());
+  async function onGuardar(id: string, edificioId: string, categoria: string) {
+    setAGuardar(id);
+    try {
+      const r = await guardar({ data: { emailId: id, edificioId, categoria } });
+      setGuardados((g) => new Set(g).add(id));
+      toast.success(r.anexos ? `${r.anexos} anexo(s) guardado(s) nos documentos do prédio` : "Email guardado nos documentos do prédio");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao guardar");
+    } finally {
+      setAGuardar(null);
+    }
+  }
   const [cat, setCat] = useState("Todas");
   const [q, setQ] = useState("");
   const emails = data?.emails ?? [];
@@ -84,6 +107,29 @@ function EmailsPage() {
               </a>
               <p className="text-xs text-muted-foreground">{e.de}</p>
               <p className="line-clamp-2 text-sm">{e.resumo}</p>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <select
+                  className="h-8 max-w-xs rounded-md border bg-background px-2 text-sm"
+                  value={escolha[e.id] ?? e.edificioId ?? ""}
+                  onChange={(ev) => setEscolha((s) => ({ ...s, [e.id]: ev.target.value }))}
+                >
+                  <option value="">Associar a prédio…</option>
+                  {(eds ?? []).map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.identificacao_interna ? `${d.identificacao_interna} — ` : ""}{d.nome}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!(escolha[e.id] ?? e.edificioId) || aGuardar === e.id || guardados.has(e.id)}
+                  onClick={() => onGuardar(e.id, (escolha[e.id] ?? e.edificioId)!, e.categoria)}
+                >
+                  <Save className="mr-1 h-4 w-4" />
+                  {guardados.has(e.id) ? "Guardado" : aGuardar === e.id ? "A guardar…" : "Guardar nos documentos"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
