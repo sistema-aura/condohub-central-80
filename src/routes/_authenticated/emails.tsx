@@ -2,11 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { RefreshCw, Save } from "lucide-react";
+import { RefreshCw, Save, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getEmails, guardarEmail } from "@/lib/emails.functions";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,78 +63,128 @@ function EmailsPage() {
   );
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Emails</h1>
-        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
-        </Button>
-      </div>
-      <Input placeholder="Pesquisar por assunto, remetente ou prédio…" value={q} onChange={(e) => setQ(e.target.value)} />
-      <div className="flex flex-wrap gap-2">
-        {[["Todas", emails.length] as [string, number], ...cats].map(([c, n]) => (
-          <Button key={c} size="sm" variant={cat === c ? "default" : "outline"} onClick={() => setCat(c)}>
-            {c} ({n})
+    <div className="mx-auto max-w-5xl space-y-5 p-4 md:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">Emails</h1>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-sm text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
+            geral.dinamico@gmail.com
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
           </Button>
-        ))}
+        </div>
       </div>
+
+      <div className="flex flex-col gap-3 md:flex-row">
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            className="rounded-xl bg-card pl-9"
+            placeholder="Pesquisar por assunto, remetente ou prédio…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {[["Todas", emails.length] as [string, number], ...cats].map(([c, n]) => (
+            <Button
+              key={c}
+              size="sm"
+              variant={cat === c ? "default" : "outline"}
+              className="shrink-0 rounded-xl"
+              onClick={() => setCat(c)}
+            >
+              {c} ({n})
+            </Button>
+          ))}
+        </div>
+      </div>
+
       {data?.erro && <p className="text-sm text-destructive">{data.erro}</p>}
       {isLoading && <p className="text-muted-foreground">A ler emails…</p>}
-      <div className="space-y-2">
-        {lista.map((e) => (
-          <Card key={e.id} className={e.urgente ? "border-destructive" : ""}>
-            <CardContent className="space-y-1 p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                {e.urgente && <Badge variant="destructive">URGENTE</Badge>}
-                <Badge variant="secondary">{e.categoria}</Badge>
-                {e.marcadores.map((m) => <Badge key={m} variant="outline">🏷 {m}</Badge>)}
-                {e.edificioId && (
-                  <Link to="/edificios/$id" params={{ id: e.edificioId }}>
-                    <Badge variant="outline">{e.edificioNome}</Badge>
-                  </Link>
-                )}
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {e.data ? new Date(e.data).toLocaleString("pt-PT") : ""}
-                </span>
+
+      <div className="space-y-3">
+        {lista.map((e) => {
+          const guardado = guardados.has(e.id) || e.guardado;
+          return (
+            <div
+              key={e.id}
+              className={`rounded-2xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md ${
+                e.urgente ? "border-destructive/60" : ""
+              }`}
+            >
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
+                <div className="min-w-0 flex-grow space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {e.urgente && <Badge variant="destructive">URGENTE</Badge>}
+                    <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
+                      {e.categoria}
+                    </Badge>
+                    {e.marcadores.map((m) => (
+                      <Badge key={m} variant="outline">
+                        🏷 {m}
+                      </Badge>
+                    ))}
+                    {e.edificioId && (
+                      <Link to="/edificios/$id" params={{ id: e.edificioId }}>
+                        <Badge variant="outline">{e.edificioNome}</Badge>
+                      </Link>
+                    )}
+                    <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                      {e.data ? new Date(e.data).toLocaleString("pt-PT") : ""}
+                    </span>
+                  </div>
+                  <a
+                    href={`https://mail.google.com/mail/u/0/#inbox/${e.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block truncate text-base font-semibold leading-tight hover:underline"
+                  >
+                    {e.assunto || "(sem assunto)"}
+                  </a>
+                  <p className="truncate text-sm">
+                    <span className="font-medium">{e.de}</span>
+                    <span className="text-muted-foreground"> — {e.resumo}</span>
+                  </p>
+                </div>
+
+                <div className="flex shrink-0 flex-col gap-2 border-t pt-4 sm:flex-row lg:w-64 lg:flex-col lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+                  <select
+                    className="h-9 w-full rounded-lg border bg-muted/40 px-2 text-xs font-medium outline-none focus:border-primary"
+                    value={escolha[e.id] ?? e.edificioId ?? ""}
+                    onChange={(ev) => setEscolha((s) => ({ ...s, [e.id]: ev.target.value }))}
+                  >
+                    <option value="">Associar a prédio…</option>
+                    {(eds ?? []).map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.identificacao_interna ? `${d.identificacao_interna} — ` : ""}{d.nome}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    size="sm"
+                    variant={guardado ? "secondary" : "default"}
+                    disabled={!escolha[e.id] && !e.edificioId || aGuardar === e.id || guardado}
+                    onClick={() => onGuardar(e.id, (escolha[e.id] ?? e.edificioId)!, e.categoria)}
+                  >
+                    <Save className="mr-1 h-4 w-4" />
+                    {guardado ? "Guardado" : aGuardar === e.id ? "A guardar…" : "Guardar nos documentos"}
+                  </Button>
+                </div>
               </div>
-              <a
-                href={`https://mail.google.com/mail/u/0/#inbox/${e.id}`}
-                target="_blank"
-                rel="noreferrer"
-                className="block font-medium hover:underline"
-              >
-                {e.assunto || "(sem assunto)"}
-              </a>
-              <p className="text-xs text-muted-foreground">{e.de}</p>
-              <p className="line-clamp-2 text-sm">{e.resumo}</p>
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <select
-                  className="h-8 max-w-xs rounded-md border bg-background px-2 text-sm"
-                  value={escolha[e.id] ?? e.edificioId ?? ""}
-                  onChange={(ev) => setEscolha((s) => ({ ...s, [e.id]: ev.target.value }))}
-                >
-                  <option value="">Associar a prédio…</option>
-                  {(eds ?? []).map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.identificacao_interna ? `${d.identificacao_interna} — ` : ""}{d.nome}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={!(escolha[e.id] ?? e.edificioId) || aGuardar === e.id || (guardados.has(e.id) || e.guardado)}
-                  onClick={() => onGuardar(e.id, (escolha[e.id] ?? e.edificioId)!, e.categoria)}
-                >
-                  <Save className="mr-1 h-4 w-4" />
-                  {(guardados.has(e.id) || e.guardado) ? "Guardado" : aGuardar === e.id ? "A guardar…" : "Guardar nos documentos"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          );
+        })}
         {!isLoading && !lista.length && <p className="text-muted-foreground">Sem emails.</p>}
       </div>
+
+      {!!lista.length && (
+        <p className="pb-2 text-xs text-muted-foreground">
+          {lista.length} de {emails.length} emails
+        </p>
+      )}
     </div>
   );
 }
