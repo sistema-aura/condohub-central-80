@@ -1,0 +1,1 @@
+ALTER TABLE public.vistorias ADD COLUMN IF NOT EXISTS avisar_pessoas text[] NOT NULL DEFAULT '{}', ADD COLUMN IF NOT EXISTS concluida boolean NOT NULL DEFAULT false;

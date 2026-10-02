@@ -339,6 +339,8 @@ export type Database = {
       }
       vistorias: {
         Row: {
+          avisar_pessoas: string[]
+          concluida: boolean
           created_at: string
           created_by: string | null
           data: string
@@ -350,6 +352,8 @@ export type Database = {
           pessoa: string
         }
         Insert: {
+          avisar_pessoas?: string[]
+          concluida?: boolean
           created_at?: string
           created_by?: string | null
           data?: string
@@ -361,6 +365,8 @@ export type Database = {
           pessoa?: string
         }
         Update: {
+          avisar_pessoas?: string[]
+          concluida?: boolean
           created_at?: string
           created_by?: string | null
           data?: string
