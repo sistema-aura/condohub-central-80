@@ -71,6 +71,11 @@ function Vistorias() {
     setBusy(false); setForm(null);
     qc.invalidateQueries({ queryKey: ["vistorias"] });
   };
+  const apagar = async (id: string) => {
+    if (!confirm("Apagar esta vistoria?")) return;
+    await supabase.from("vistorias").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["vistorias"] });
+  };
   const concluir = async (id: string) => {
     await supabase.from("vistorias").update({ concluida: true }).eq("id", id);
     toast.success("Vistoria concluída — lembretes parados");
