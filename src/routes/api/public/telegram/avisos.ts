@@ -34,9 +34,16 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
         if (rpcError || valid !== true) return new Response("Unauthorized", { status: 401 });
 
         // Chats ligados (todos recebem)
-        const { data: cfgs } = await supabaseAdmin.from("telegram_config").select("chat_id");
+        const { data: cfgs } = await supabaseAdmin.from("telegram_config").select("chat_id,chat_title");
         const chats = (cfgs ?? []).map((c) => c.chat_id as number);
         if (!chats.length) return Response.json({ ok: true, enviadas: 0, motivo: "sem chat" });
+        // Pessoa da empresa associada a cada chat (leo=Leonor, dina=Dina, eduardo=Eduardo)
+        const CHAT_PESSOA: Record<string, string> = { leo: "Leonor", dina: "Dina", eduardo: "Eduardo" };
+        const chatPessoa = new Map<number, string>();
+        for (const c of cfgs ?? []) {
+          const p = CHAT_PESSOA[String(c.chat_title ?? "").trim().toLowerCase()];
+          if (p) chatPessoa.set(c.chat_id as number, p);
+        }
         const chatId = 0;
         const sendTelegramMessage = async (_id: number, text: string) => {
           for (const c of chats) await sendOne(c, text);
