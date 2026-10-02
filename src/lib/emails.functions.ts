@@ -1,12 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { lerEmails } from "./emails.server";
+import { lerEmails, type Conta } from "./emails.server";
 
 export const getEmails = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => {
+  .inputValidator((d: { conta: Conta | "ambos" }) => d)
+  .handler(async ({ data }) => {
     try {
-      return { emails: await lerEmails(50), erro: null as string | null };
+      const contas: Conta[] = data.conta === "ambos" ? ["geral", "condo"] : [data.conta];
+      const listas = await Promise.all(contas.map((c) => lerEmails(50, undefined, c)));
+      const todos = listas.flat();
+      const cont = new Map<string, Set<string>>();
+      for (const e of todos) cont.set(e.msgId, (cont.get(e.msgId) ?? new Set()).add(e.conta));
+      let emails = todos.map((e) => ({ ...e, nasDuas: (cont.get(e.msgId)?.size ?? 0) > 1 }));
+      if (data.conta === "ambos") {
+        const vistos = new Set<string>();
+        emails = emails.filter((e) => (vistos.has(e.msgId) ? false : (vistos.add(e.msgId), true)));
+        emails.sort((a, b) => +new Date(b.data) - +new Date(a.data));
+      }
+      return { emails, erro: null as string | null };
     } catch (e) {
       console.error(e);
       return { emails: [], erro: e instanceof Error ? e.message : String(e) };
@@ -15,10 +27,10 @@ export const getEmails = createServerFn({ method: "GET" })
 
 export const resumirEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { emailId: string }) => d)
+  .inputValidator((d: { emailId: string; conta?: Conta }) => d)
   .handler(async ({ data }) => {
     const { lerEmailCompleto } = await import("./emails.server");
-    const e = await lerEmailCompleto(data.emailId);
+    const e = await lerEmailCompleto(data.emailId, data.conta);
     const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.LOVABLE_API_KEY}`, "Content-Type": "application/json" },
@@ -54,10 +66,10 @@ const TIPOS: Record<string, "elevador" | "seguro" | "banco" | "outros"> = {
 
 export const guardarEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { emailId: string; edificioId: string; categoria: string }) => d)
+  .inputValidator((d: { emailId: string; edificioId: string; categoria: string; conta?: Conta }) => d)
   .handler(async ({ data, context }) => {
     const { lerEmailCompleto } = await import("./emails.server");
-    const e = await lerEmailCompleto(data.emailId);
+    const e = await lerEmailCompleto(data.emailId, data.conta);
     const sb = context.supabase;
     const tipo = TIPOS[data.categoria] ?? "outros";
     const info = `[gmail:${data.emailId}]\nEmail de ${e.de}\n${e.data}\n\n${e.texto}`;
