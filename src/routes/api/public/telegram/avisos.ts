@@ -65,6 +65,31 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           (Date.parse(`${fmtDia.format(new Date(iso))}T00:00:00Z`) - hojeMs) / 86400000;
 
         const agora = new Date().toISOString();
+
+        // Modo Agenda (10:30, 15:30, 17:00): tarefas da agenda + declarações por fazer
+        if (request.headers.get("x-modo") === "agenda") {
+          const { data: eds } = await supabaseAdmin.from("edificios").select("id,nome,identificacao_interna");
+          const ed = (id: string | null) => {
+            const e = (eds ?? []).find((x) => x.id === id);
+            return e ? `${e.identificacao_interna ? e.identificacao_interna + " – " : ""}${e.nome}` : "";
+          };
+          const ESTADO: Record<string, string> = { pendente: "🕓 Por ver", visto: "👀 Visto", em_curso: "🚶 No prédio", };
+          const { data: tars } = await supabaseAdmin.from("tarefas").select("titulo,edificio_id,de_pessoa,para_pessoa,estado,prioridade,prazo").neq("estado", "concluida").order("prazo", { nullsFirst: false });
+          const { data: decs } = await supabaseAdmin.from("declaracoes").select("edificio_id,fracao,urgente,reconhecida").eq("feita", false);
+          const msgs: string[] = [];
+          if (tars?.length) {
+            const linhas = tars.map((t) => `• ${t.prioridade ? "⚡" : ""}${t.titulo}${t.edificio_id ? ` (${ed(t.edificio_id)})` : ""}\n   ${t.de_pessoa} → ${t.para_pessoa} · ${ESTADO[t.estado] ?? t.estado}${t.prazo ? ` · até ${fmtData.format(new Date(t.prazo + "T12:00:00Z"))}` : ""}`);
+            msgs.push(`📋 Agenda – por concluir (${tars.length})\n${linhas.join("\n")}`);
+          }
+          if (decs?.length) {
+            const linhas = decs.map((d) => `• ${ed(d.edificio_id as string)}${d.fracao ? ` – ${d.fracao}` : ""}${d.urgente ? " ⚡URGENTE" : ""}${d.reconhecida ? " (reconhecida)" : ""}`);
+            msgs.push(`📝 Declarações por fazer (${decs.length})\n${linhas.join("\n")}`);
+          }
+          if (!msgs.length) msgs.push(`✅ Aviso da Agenda das ${fmtHora.format(new Date())} correu: sem tarefas nem declarações por fazer.`);
+          const errs: string[] = [];
+          for (const m of msgs) for (const c of chats) { try { await sendOne(c, m.slice(0, 4000)); } catch (e) { errs.push(String(e)); } }
+          return Response.json({ ok: true, enviadas: msgs.length, erros: errs });
+        }
         const { data: ass, error: assErr } = await supabaseAdmin
           .from("assembleias")
           .select("id,data_hora,convocatoria_enviada,avisada_convocatoria,avisada_reuniao,edificio_id")
@@ -147,7 +172,7 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
 
         // Declarações por fazer: lembrete diário a todos os chats (passagem da manhã)
         const horaLx = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Lisbon", hour: "2-digit", hour12: false }).format(new Date()));
-        if (horaLx < 12 || request.headers.get("x-forcar-declaracoes") === "1") {
+        if (horaLx < 0 || request.headers.get("x-forcar-declaracoes") === "1") {
           const { data: decs } = await supabaseAdmin
             .from("declaracoes")
             .select("edificio_id,fracao,urgente,reconhecida")
