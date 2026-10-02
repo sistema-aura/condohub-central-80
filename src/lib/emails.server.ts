@@ -10,6 +10,8 @@ export type EmailItem = {
   edificioId: string | null;
   edificioNome: string | null;
   urgente: boolean;
+  marcadores: string[];
+  guardado: boolean;
 };
 
 const CATEGORIAS: [string, RegExp][] = [
@@ -58,7 +60,7 @@ async function gw(path: string, init?: RequestInit) {
   return res;
 }
 
-export async function lerEmails(max = 50, q = "in:inbox"): Promise<EmailItem[]> {
+export async function lerEmails(max = 50, q = "-in:sent -in:trash -in:spam -in:draft -in:chats"): Promise<EmailItem[]> {
   const list = (await (await gw(`/gmail/v1/users/me/messages?maxResults=${max}&q=${encodeURIComponent(q)}`)).json()) as {
     messages?: { id: string }[];
   };
@@ -82,7 +84,9 @@ export async function lerEmails(max = 50, q = "in:inbox"): Promise<EmailItem[]> 
   const rb = ct.match(/boundary=("?)([^";]+)\1/)?.[2];
   if (!rb) throw new Error("Resposta inesperada do Gmail");
   const texto = await res.text();
-  const msgs: { id: string; snippet?: string; payload?: { headers?: { name: string; value: string }[] } }[] = [];
+  const labs = (await (await gw(`/gmail/v1/users/me/labels`)).json()) as { labels?: { id: string; name: string; type: string }[] };
+  const nomeLab = new Map((labs.labels ?? []).filter((l) => l.type === "user").map((l) => [l.id, l.name]));
+  const msgs: { id: string; labelIds?: string[]; snippet?: string; payload?: { headers?: { name: string; value: string }[] } }[] = [];
   for (const part of texto.split(`--${rb}`)) {
     const st = part.match(/HTTP\/1\.1 (\d{3})/);
     if (!st || st[1] !== "200") continue;
@@ -94,12 +98,16 @@ export async function lerEmails(max = 50, q = "in:inbox"): Promise<EmailItem[]> 
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: eds } = await supabaseAdmin.from("edificios").select("id,nome,identificacao_interna");
+  const { data: docs } = await supabaseAdmin.from("documentos").select("informacao").like("informacao", "%[gmail:%");
+  const guardados = new Set((docs ?? []).map((d) => d.informacao?.match(/\[gmail:(\w+)\]/)?.[1]));
 
   return msgs.map((m) => {
     const h = (n: string) => m.payload?.headers?.find((x) => x.name.toLowerCase() === n.toLowerCase())?.value ?? "";
     const assunto = h("Subject");
     const resumo = (m.snippet ?? "").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+    const marcadores = (m.labelIds ?? []).map((l) => nomeLab.get(l)).filter(Boolean) as string[];
     const txt = norm(`${assunto} ${resumo}`);
+    const tl = norm(marcadores.join(" "));
     const ed = acharEdificio(txt, (eds ?? []) as Ed[]);
     return {
       id: m.id,
@@ -107,7 +115,9 @@ export async function lerEmails(max = 50, q = "in:inbox"): Promise<EmailItem[]> 
       assunto,
       data: h("Date"),
       resumo,
-      categoria: classificar(txt),
+      categoria: tl && classificar(tl) !== "Outros" ? classificar(tl) : classificar(txt),
+      marcadores,
+      guardado: guardados.has(m.id),
       edificioId: ed?.id ?? null,
       edificioNome: ed?.nome ?? null,
       urgente: /urgent/.test(txt),
