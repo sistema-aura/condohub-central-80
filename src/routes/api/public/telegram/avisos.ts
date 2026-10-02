@@ -180,6 +180,14 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
           erros.push(e instanceof Error ? e.message : String(e));
         }
 
+        if (enviadas === 0 && !erros.length && request.headers.get("x-sem-resumo") !== "1") {
+          try {
+            for (const c of chats) await sendOne(c, `✅ Verificação das ${fmtHora.format(new Date())}: sem avisos pendentes.`);
+          } catch (e) {
+            erros.push(e instanceof Error ? e.message : String(e));
+          }
+        }
+
         return Response.json({ ok: true, enviadas, erros });
       },
     },
