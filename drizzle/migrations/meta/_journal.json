@@ -64,6 +64,13 @@
       "when": 1790957826113,
       "tag": "0008_create_vistorias",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790958293808,
+      "tag": "0009_vistorias_avisos",
+      "breakpoints": true
     }
   ]
 }
