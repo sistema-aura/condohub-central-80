@@ -73,3 +73,26 @@ export const testarTelegram = createServerFn({ method: "POST" })
     for (const c of all!) await gatewayCall("/sendMessage", { chat_id: c.chat_id, text: `🔔 Aviso de teste do Condomínio Dinâmico (${hora}).\nSe estás a ler isto, os avisos chegam ao chat certo.` });
     return { ok: true, title: all!.map((c) => c.chat_title ?? "?").join(", ") };
   });
+
+const NOME_CHAT: Record<string, string> = { Leonor: "leo", Dina: "dina", Eduardo: "eduardo" };
+
+export const notificarPessoas = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { pessoas: string[]; texto: string }) => {
+    if (!Array.isArray(d.pessoas) || !d.pessoas.length) throw new Error("Escolhe pelo menos uma pessoa");
+    return { pessoas: d.pessoas.filter((p) => p in NOME_CHAT), texto: String(d.texto).slice(0, 3500) };
+  })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: cfgs, error } = await supabaseAdmin.from("telegram_config").select("chat_id,chat_title");
+    if (error) throw new Error(error.message);
+    const enviados: string[] = [];
+    const falhas: string[] = [];
+    for (const p of data.pessoas) {
+      const c = (cfgs ?? []).find((x) => (x.chat_title ?? "").toLowerCase() === NOME_CHAT[p]);
+      if (!c) { falhas.push(p); continue; }
+      try { await gatewayCall("/sendMessage", { chat_id: c.chat_id, text: data.texto }); enviados.push(p); }
+      catch { falhas.push(p); }
+    }
+    return { enviados, falhas };
+  });
