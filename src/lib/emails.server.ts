@@ -59,9 +59,10 @@ function acharEdificio(txt: string, eds: Ed[]): Ed | null {
   return null;
 }
 
-async function gw(path: string, init?: RequestInit) {
+export type Conta = "geral" | "condo";
+async function gw(path: string, init?: RequestInit, conta: Conta = "geral") {
   const L = process.env.LOVABLE_API_KEY;
-  const G = process.env.GOOGLE_MAIL_API_KEY;
+  const G = conta === "condo" ? process.env.GOOGLE_MAIL_API_KEY_1 : process.env.GOOGLE_MAIL_API_KEY;
   if (!L || !G) throw new Error("Gmail não está ligado");
   const res = await fetch(`${GW}${path}`, {
     ...init,
@@ -71,8 +72,8 @@ async function gw(path: string, init?: RequestInit) {
   return res;
 }
 
-export async function lerEmails(max = 50, q = "-in:sent -in:trash -in:spam -in:draft -in:chats"): Promise<EmailItem[]> {
-  const list = (await (await gw(`/gmail/v1/users/me/messages?maxResults=${max}&q=${encodeURIComponent(q)}`)).json()) as {
+export async function lerEmails(max = 50, q = "-in:sent -in:trash -in:spam -in:draft -in:chats", conta: Conta = "geral"): Promise<(EmailItem & { conta: Conta; msgId: string })[]> {
+  const list = (await (await gw(`/gmail/v1/users/me/messages?maxResults=${max}&q=${encodeURIComponent(q)}`, undefined, conta)).json()) as {
     messages?: { id: string }[];
   };
   const ids = (list.messages ?? []).map((m) => m.id);
@@ -83,19 +84,19 @@ export async function lerEmails(max = 50, q = "-in:sent -in:trash -in:spam -in:d
     ids
       .map(
         (id) =>
-          `--${boundary}\r\nContent-Type: application/http\r\n\r\nGET /gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date\r\n\r\n`,
+          `--${boundary}\r\nContent-Type: application/http\r\n\r\nGET /gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date&metadataHeaders=Message-ID\r\n\r\n`,
       )
       .join("") + `--${boundary}--`;
   const res = await gw(`/batch/gmail/v1`, {
     method: "POST",
     headers: { "Content-Type": `multipart/mixed; boundary=${boundary}` },
     body,
-  });
+  }, conta);
   const ct = res.headers.get("content-type") ?? "";
   const rb = ct.match(/boundary=("?)([^";]+)\1/)?.[2];
   if (!rb) throw new Error("Resposta inesperada do Gmail");
   const texto = await res.text();
-  const labs = (await (await gw(`/gmail/v1/users/me/labels`)).json()) as { labels?: { id: string; name: string; type: string }[] };
+  const labs = (await (await gw(`/gmail/v1/users/me/labels`, undefined, conta)).json()) as { labels?: { id: string; name: string; type: string }[] };
   const nomeLab = new Map((labs.labels ?? []).filter((l) => l.type === "user").map((l) => [l.id, l.name]));
   const msgs: { id: string; labelIds?: string[]; snippet?: string; payload?: { headers?: { name: string; value: string }[] } }[] = [];
   for (const part of texto.split(`--${rb}`)) {
@@ -122,6 +123,8 @@ export async function lerEmails(max = 50, q = "-in:sent -in:trash -in:spam -in:d
     const ed = acharEdificio(txt, (eds ?? []) as Ed[]);
     return {
       id: m.id,
+      conta,
+      msgId: h("Message-ID") || `${h("From")}|${assunto}|${h("Date")}`,
       de: h("From"),
       assunto,
       data: h("Date"),
@@ -140,8 +143,8 @@ type Part = { filename?: string; mimeType?: string; body?: { attachmentId?: stri
 
 const b64 = (s: string) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
 
-export async function lerEmailCompleto(id: string) {
-  const m = (await (await gw(`/gmail/v1/users/me/messages/${id}?format=full`)).json()) as {
+export async function lerEmailCompleto(id: string, conta: Conta = "geral") {
+  const m = (await (await gw(`/gmail/v1/users/me/messages/${id}?format=full`, undefined, conta)).json()) as {
     snippet?: string;
     payload?: Part & { headers?: { name: string; value: string }[] };
   };
@@ -151,7 +154,7 @@ export async function lerEmailCompleto(id: string) {
   const walk = async (p?: Part) => {
     if (!p) return;
     if (p.filename && p.body?.attachmentId) {
-      const a = (await (await gw(`/gmail/v1/users/me/messages/${id}/attachments/${p.body.attachmentId}`)).json()) as { data: string };
+      const a = (await (await gw(`/gmail/v1/users/me/messages/${id}/attachments/${p.body.attachmentId}`, undefined, conta)).json()) as { data: string };
       anexos.push({ nome: p.filename, mime: p.mimeType ?? "application/octet-stream", dados: b64(a.data) });
     } else if (!texto && p.mimeType === "text/plain" && p.body?.data) {
       texto = new TextDecoder().decode(b64(p.body.data));
