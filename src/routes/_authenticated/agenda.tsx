@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Building2, CalendarClock, Check, Eye, Footprints, Trash2, Pencil, Zap, ArrowRight, Search } from "lucide-react";
+import { Send, Plus, Building2, StickyNote, Flag, UserRound, CalendarClock, Check, Eye, Footprints, Trash2, Pencil, Zap, ArrowRight, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { notificarPessoas } from "@/lib/telegram.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,6 +55,9 @@ function AgendaPage() {
   const [vista, setVista] = useState<"abertas" | "concluidas">("abertas");
   const [q, setQ] = useState("");
   const [form, setForm] = useState<Form | null>(null);
+  const [aviso, setAviso] = useState<{ texto: string; pessoas: string[] } | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const notificar = useServerFn(notificarPessoas);
 
   const { data: tarefas = [] } = useQuery({
     queryKey: ["tarefas"],
@@ -99,8 +104,21 @@ function AgendaPage() {
     const r = id ? await supabase.from("tarefas").update(rest).eq("id", id) : await supabase.from("tarefas").insert(rest);
     if (r.error) return toast.error(r.error.message);
     toast.success(id ? "Tarefa atualizada" : "Tarefa criada");
+    const texto = `📋 ${id ? "Tarefa atualizada" : "Nova tarefa"}${rest.prioridade ? " ⚡URGENTE" : ""}\n${rest.titulo}${rest.edificio_id ? `\nPrédio: ${nomeEd(rest.edificio_id)}` : ""}\n${rest.de_pessoa} → ${rest.para_pessoa}${rest.prazo ? `\nAté ${new Date(rest.prazo + "T12:00:00").toLocaleDateString("pt-PT")}` : ""}${rest.descricao ? `\n\n${rest.descricao}` : ""}`;
+    setAviso({ texto, pessoas: [rest.para_pessoa] });
     setForm(null);
     qc.invalidateQueries({ queryKey: ["tarefas"] });
+  }
+  async function enviarAviso() {
+    if (!aviso || !aviso.pessoas.length) return toast.error("Escolhe pelo menos uma pessoa");
+    setEnviando(true);
+    try {
+      const r = await notificar({ data: aviso });
+      if (r.enviados.length) toast.success(`Aviso enviado a ${r.enviados.join(", ")}`);
+      if (r.falhas.length) toast.error(`Não foi possível avisar: ${r.falhas.join(", ")}`);
+      setAviso(null);
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Erro ao enviar"); }
+    finally { setEnviando(false); }
   }
   async function apagar(id: string) {
     if (!confirm("Apagar esta tarefa?")) return;
@@ -198,43 +216,102 @@ function AgendaPage() {
       </div>
 
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>{form?.id ? "Editar tarefa" : "Nova tarefa"}</DialogTitle></DialogHeader>
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-xl">
+          <div className="border-b bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 pb-5 pt-6">
+            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-primary">Agenda da equipa</p>
+            <DialogHeader><DialogTitle className="text-xl">{form?.id ? "Editar pedido" : "Novo pedido"}</DialogTitle></DialogHeader>
+            <p className="mt-1 text-sm text-muted-foreground">Diz o que é preciso, para quem e em que prédio.</p>
+          </div>
           {form && (
-            <div className="space-y-4">
-              <div className="space-y-1.5"><Label>O que é preciso fazer</Label><Input value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} placeholder="Ex.: Fazer ata da assembleia" /></div>
-              <div className="space-y-1.5">
-                <Label>Prédio</Label>
+            <div className="max-h-[65vh] space-y-6 overflow-y-auto px-6 py-5">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">O que é preciso fazer</Label>
+                <Input value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} placeholder="Ex.: Fazer ata da assembleia" className="h-12 rounded-xl text-base" autoFocus />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Quem pede e para quem</Label>
+                <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3 rounded-2xl border bg-muted/30 p-3">
+                  {(["de_pessoa", "para_pessoa"] as const).map((k, i) => (
+                    <>
+                      {i === 1 && <ArrowRight key="seta" className="mt-9 h-4 w-4 text-muted-foreground" />}
+                      <div key={k} className="space-y-2">
+                        <div className="text-[11px] text-muted-foreground">{k === "de_pessoa" ? "Pedido por" : "Para"}</div>
+                        <div className="flex flex-col gap-1.5">
+                          {PESSOAS.map((p) => (
+                            <button type="button" key={p} onClick={() => setForm({ ...form, [k]: p })} className={`flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-sm transition ${form[k] === p ? "border-primary bg-background font-medium shadow-sm ring-1 ring-primary" : "border-transparent text-muted-foreground hover:bg-background"}`}>
+                              <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${COR[p]}`}>{p[0]}</span>{p}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"><Building2 className="h-3.5 w-3.5" />Prédio</Label>
                 <Select value={form.edificio_id ?? "nenhum"} onValueChange={(v) => setForm({ ...form, edificio_id: v === "nenhum" ? null : v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="nenhum">Sem prédio</SelectItem>
                     {eds.map((e) => <SelectItem key={e.id} value={e.id}>{`${e.identificacao_interna ?? ""} ${e.nome}`.trim()}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {(["de_pessoa", "para_pessoa"] as const).map((k) => (
-                  <div key={k} className="space-y-1.5">
-                    <Label>{k === "de_pessoa" ? "Pedido por" : "Para"}</Label>
-                    <Select value={form[k]} onValueChange={(v) => setForm({ ...form, [k]: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{PESSOAS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                ))}
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"><StickyNote className="h-3.5 w-3.5" />Notas</Label>
+                <Textarea rows={3} value={form.descricao ?? ""} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Ex.: falta uma lâmpada no 2.º andar" className="rounded-xl" />
               </div>
-              <div className="space-y-1.5"><Label>Notas</Label><Textarea rows={3} value={form.descricao ?? ""} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Ex.: falta uma lâmpada no 2.º andar" /></div>
-              <div className="grid grid-cols-2 items-end gap-3">
-                <div className="space-y-1.5"><Label>Prazo (opcional)</Label><Input type="date" value={form.prazo ?? ""} onChange={(e) => setForm({ ...form, prazo: e.target.value || null })} /></div>
-                <label className="flex h-10 items-center gap-2 text-sm"><Switch checked={form.prioridade} onCheckedChange={(v) => setForm({ ...form, prioridade: v })} /> Urgente</label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"><CalendarClock className="h-3.5 w-3.5" />Prazo</Label>
+                  <Input type="date" value={form.prazo ?? ""} onChange={(e) => setForm({ ...form, prazo: e.target.value || null })} className="h-11 rounded-xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"><Flag className="h-3.5 w-3.5" />Prioridade</Label>
+                  <button type="button" onClick={() => setForm({ ...form, prioridade: !form.prioridade })} className={`flex h-11 w-full items-center justify-between rounded-xl border px-3 text-sm transition ${form.prioridade ? "border-destructive/40 bg-destructive/10 font-medium text-destructive" : "text-muted-foreground"}`}>
+                    <span className="flex items-center gap-1.5"><Zap className="h-4 w-4" />{form.prioridade ? "Urgente" : "Normal"}</span>
+                    <Switch checked={form.prioridade} onCheckedChange={(v) => setForm({ ...form, prioridade: v })} onClick={(e) => e.stopPropagation()} />
+                  </button>
+                </div>
               </div>
             </div>
           )}
-          <DialogFooter className="gap-2">
+          <DialogFooter className="gap-2 border-t bg-muted/30 px-6 py-4">
             {form?.id && <Button variant="ghost" className="mr-auto text-destructive" onClick={() => apagar(form.id!)}><Trash2 className="mr-1 h-4 w-4" />Apagar</Button>}
-            <Button variant="outline" onClick={() => setForm(null)}>Cancelar</Button>
-            <Button onClick={guardar}>Guardar</Button>
+            <Button variant="outline" className="rounded-full" onClick={() => setForm(null)}>Cancelar</Button>
+            <Button className="rounded-full px-6" onClick={guardar}>Guardar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!aviso} onOpenChange={(o) => !o && setAviso(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Send className="h-5 w-5 text-primary" />Avisar no Telegram?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Escolhe quem deve receber este pedido no telemóvel.</p>
+          {aviso && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                {PESSOAS.map((p) => {
+                  const on = aviso.pessoas.includes(p);
+                  return (
+                    <button key={p} type="button" onClick={() => setAviso({ ...aviso, pessoas: on ? aviso.pessoas.filter((x) => x !== p) : [...aviso.pessoas, p] })} className={`flex flex-col items-center gap-2 rounded-2xl border p-3 transition ${on ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}>
+                      <span className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold ${COR[p]}`}>{on ? <Check className="h-5 w-5" /> : p[0]}</span>
+                      <span className="text-sm font-medium">{p}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <pre className="whitespace-pre-wrap rounded-xl bg-muted/50 p-3 font-sans text-xs text-muted-foreground">{aviso.texto}</pre>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" className="rounded-full" onClick={() => setAviso(null)}>Não avisar</Button>
+            <Button className="rounded-full" disabled={enviando || !aviso?.pessoas.length} onClick={enviarAviso}><Send className="mr-1 h-4 w-4" />{enviando ? "A enviar…" : "Enviar aviso"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
