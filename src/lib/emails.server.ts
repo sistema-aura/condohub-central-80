@@ -114,3 +114,29 @@ export async function lerEmails(max = 50, q = "in:inbox"): Promise<EmailItem[]> 
     };
   });
 }
+
+type Part = { filename?: string; mimeType?: string; body?: { attachmentId?: string; size?: number; data?: string }; parts?: Part[] };
+
+const b64 = (s: string) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+
+export async function lerEmailCompleto(id: string) {
+  const m = (await (await gw(`/gmail/v1/users/me/messages/${id}?format=full`)).json()) as {
+    snippet?: string;
+    payload?: Part & { headers?: { name: string; value: string }[] };
+  };
+  const h = (n: string) => m.payload?.headers?.find((x) => x.name.toLowerCase() === n)?.value ?? "";
+  const anexos: { nome: string; mime: string; dados: Uint8Array }[] = [];
+  let texto = "";
+  const walk = async (p?: Part) => {
+    if (!p) return;
+    if (p.filename && p.body?.attachmentId) {
+      const a = (await (await gw(`/gmail/v1/users/me/messages/${id}/attachments/${p.body.attachmentId}`)).json()) as { data: string };
+      anexos.push({ nome: p.filename, mime: p.mimeType ?? "application/octet-stream", dados: b64(a.data) });
+    } else if (!texto && p.mimeType === "text/plain" && p.body?.data) {
+      texto = new TextDecoder().decode(b64(p.body.data));
+    }
+    for (const c of p.parts ?? []) await walk(c);
+  };
+  await walk(m.payload);
+  return { assunto: h("subject"), de: h("from"), data: h("date"), texto: (texto || m.snippet || "").slice(0, 4000), anexos };
+}
