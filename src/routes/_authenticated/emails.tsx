@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { RefreshCw, Save, Search } from "lucide-react";
+import { RefreshCw, Save, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { getEmails, guardarEmail } from "@/lib/emails.functions";
+import { getEmails, guardarEmail, resumirEmail } from "@/lib/emails.functions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,20 @@ function EmailsPage() {
   const [escolha, setEscolha] = useState<Record<string, string>>({});
   const [aGuardar, setAGuardar] = useState<string | null>(null);
   const [guardados, setGuardados] = useState<Set<string>>(new Set());
+  const resumir = useServerFn(resumirEmail);
+  const [resumos, setResumos] = useState<Record<string, string>>({});
+  const [aResumir, setAResumir] = useState<string | null>(null);
+  async function onResumir(id: string) {
+    setAResumir(id);
+    try {
+      const r = await resumir({ data: { emailId: id } });
+      setResumos((s) => ({ ...s, [id]: r.resumo }));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao resumir");
+    } finally {
+      setAResumir(null);
+    }
+  }
   async function onGuardar(id: string, edificioId: string, categoria: string) {
     setAGuardar(id);
     try {
