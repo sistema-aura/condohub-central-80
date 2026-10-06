@@ -18,6 +18,7 @@
 - Store monthly charge fields on each declaration and calculate the debt-free date as the last calendar day of the current month in Lisbon; this keeps a generated declaration tied to its own values and local calendar.
 
 ## Assembly minutes
-- Keep assembly status derivation in the shared assembly helper and editing in its dedicated dialog; calendar and form must agree on completion.
+- Keep assembly status derivation in the shared assembly helper and editing in its dedicated right-side sheet; calendar and form must agree on completion.
+- Gate minutes controls on the invitation-sent form state without clearing hidden values; hiding a section must never erase historical minutes.
 - Store delivery records per fraction on each assembly and reusable fraction identifiers on the building; prior minutes retain their own delivery history.
 - Store optional minutes PDFs in the existing private document bucket and open them through signed URLs; never expose permanent public document links.
