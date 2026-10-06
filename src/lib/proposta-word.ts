@@ -56,18 +56,18 @@ function cell(t: string, w: number, o: { b?: boolean; fill?: string; c?: string;
 export async function descarregarProposta(p: Proposta) {
   const logo = new Uint8Array(await (await fetch(logoFull.url)).arrayBuffer());
   const t = totais(p);
-  const cols = [4826, 1200, 1500, 1500];
+  const cols = [6026, 1200, 1800];
   const row = (c: string[], o: { b?: boolean; fill?: string; c?: string } = {}) =>
     new TableRow({ children: c.map((x, i) => cell(x, cols[i], { ...o, right: i > 0 })) });
   const tabela = new Table({
     width: { size: W, type: WidthType.DXA }, columnWidths: cols,
     rows: [
-      row(["Descrição", "Qtd.", "Preço unit.", "Subtotal"], { b: true, fill: TEAL, c: "FFFFFF" }),
-      ...linhas(p).map((x) => row([x.d, String(x.q), eur(x.u), eur(x.q * x.u)])),
-      ...(p.limpeza ? [row([`Limpeza das partes comuns (${p.limpezaFreq || "a combinar"})`, "1", eur(t.limpeza), eur(t.limpeza)])] : []),
-      row(["Total sem IVA", "", "", eur(t.sem)], { b: true, fill: "EEF6F6" }),
-      row(["IVA (23%)", "", "", eur(t.iva)]),
-      row(["TOTAL MENSAL COM IVA", "", "", eur(t.com)], { b: true, fill: "D6ECEC" }),
+      row(["Descrição", "Qtd.", "Subtotal"], { b: true, fill: TEAL, c: "FFFFFF" }),
+      ...linhas(p).map((x) => row([x.d, String(x.q), eur(x.q * x.u)])),
+      ...(p.limpeza ? [row([`Limpeza das partes comuns (${p.limpezaFreq || "a combinar"})`, "1", eur(t.limpeza)])] : []),
+      row(["Total sem IVA", "", eur(t.sem)], { b: true, fill: "EEF6F6" }),
+      row(["IVA (23%)", "", eur(t.iva)]),
+      row(["TOTAL MENSAL COM IVA", "", eur(t.com)], { b: true, fill: "D6ECEC" }),
     ],
   });
   const hoje = new Date().toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Lisbon" });

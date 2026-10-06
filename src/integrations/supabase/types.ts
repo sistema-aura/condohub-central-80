@@ -257,6 +257,39 @@ export type Database = {
         }
         Relationships: []
       }
+      propostas: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dados: Json
+          id: string
+          morada: string | null
+          nome: string | null
+          numero: string | null
+          total_com_iva: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dados: Json
+          id?: string
+          morada?: string | null
+          nome?: string | null
+          numero?: string | null
+          total_com_iva?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          id?: string
+          morada?: string | null
+          nome?: string | null
+          numero?: string | null
+          total_com_iva?: number | null
+        }
+        Relationships: []
+      }
       tarefas: {
         Row: {
           avisar_pessoas: string[] | null

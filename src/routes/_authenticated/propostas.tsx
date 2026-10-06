@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { FileSignature, Download, Building2, Minus, Plus, Sparkles, Wrench } from "lucide-react";
+import { FileSignature, Download, Building2, Minus, Plus, Sparkles, Wrench, Search, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,18 +41,41 @@ function Contador({ label, preco, value, onChange }: { label: string; preco: num
   );
 }
 
+type Guardada = { id: string; nome: string | null; morada: string | null; numero: string | null; dados: unknown; total_com_iva: number | null; created_at: string };
+
 function Propostas() {
   const [p, setP] = useState<Proposta>(INICIAL);
   const [aGerar, setAGerar] = useState(false);
+  const [lista, setLista] = useState<Guardada[]>([]);
+  const [q, setQ] = useState("");
   const set = <K extends keyof Proposta>(k: K, v: Proposta[K]) => setP((o) => ({ ...o, [k]: v }));
   const t = totais(p);
 
+  async function carregar() {
+    const { data } = await supabase.from("propostas").select("*").order("created_at", { ascending: false });
+    setLista((data as Guardada[]) ?? []);
+  }
+  useEffect(() => { carregar(); }, []);
+
   async function gerar() {
     setAGerar(true);
-    try { await descarregarProposta(p); toast.success("Proposta descarregada"); }
+    try {
+      await descarregarProposta(p);
+      await supabase.from("propostas").insert({ nome: p.nome, morada: p.morada, numero: p.numero, dados: p as never, total_com_iva: Math.round(t.com * 100) / 100 });
+      toast.success("Proposta descarregada e guardada");
+      carregar();
+    }
     catch (e) { toast.error("Erro ao gerar: " + (e as Error).message); }
     finally { setAGerar(false); }
   }
+
+  async function apagar(id: string) {
+    if (!confirm("Apagar esta proposta?")) return;
+    await supabase.from("propostas").delete().eq("id", id);
+    carregar();
+  }
+
+  const filtradas = lista.filter((x) => `${x.nome ?? ""} ${x.morada ?? ""} ${x.numero ?? ""}`.toLowerCase().includes(q.toLowerCase()));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
@@ -133,6 +157,32 @@ function Propostas() {
           <Button variant="ghost" className="w-full" onClick={() => setP(INICIAL)}>Limpar</Button>
         </aside>
       </div>
+
+      <section className="space-y-3 rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-semibold">Propostas guardadas ({lista.length})</h2>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Pesquisar prédio, morada ou n.º" className="pl-9" />
+          </div>
+        </div>
+        {filtradas.length === 0 && <p className="text-sm text-muted-foreground">Sem propostas.</p>}
+        <div className="divide-y">
+          {filtradas.map((x) => (
+            <div key={x.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+              <div>
+                <div className="font-medium">{x.nome || "Sem nome"} {x.numero && <span className="text-xs text-muted-foreground">· n.º {x.numero}</span>}</div>
+                <div className="text-xs text-muted-foreground">{x.morada} · {new Date(x.created_at).toLocaleDateString("pt-PT")} · {eur(Number(x.total_com_iva) || 0)} c/ IVA</div>
+              </div>
+              <div className="flex gap-1">
+                <Button size="sm" variant="outline" onClick={() => { setP({ ...INICIAL, ...(x.dados as Proposta) }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Abrir</Button>
+                <Button size="sm" variant="outline" onClick={() => descarregarProposta({ ...INICIAL, ...(x.dados as Proposta) })}><Download className="h-4 w-4" /></Button>
+                <Button size="sm" variant="ghost" onClick={() => apagar(x.id)}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
