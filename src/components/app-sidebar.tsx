@@ -26,6 +26,7 @@ export function AppSidebar() {
   const isActive = (p: string) => currentPath === p || currentPath.startsWith(p + "/");
 
   const items = [
+    { title: "Início", url: "/inicio", icon: LayoutDashboard },
     { title: "Edifícios", url: "/dashboard", icon: LayoutDashboard },
     { title: "Alertas", url: "/alertas", icon: AlertTriangle },
     { title: "Agenda", url: "/agenda", icon: ListTodo },
