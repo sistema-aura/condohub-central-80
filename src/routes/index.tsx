@@ -22,7 +22,8 @@ type Plataforma = {
   icon: typeof Building2;
   title: string;
   desc: string;
-  cor: string;
+  iconeCls: string;
+  acaoCls: string;
   botao: boolean;
 };
 
@@ -32,7 +33,8 @@ const plataformas: Plataforma[] = [
     icon: Building2,
     title: "Condomínio Dinâmico",
     desc: "Edifícios, documentos, declarações, assembleias, agenda, vistorias, emails e propostas.",
-    cor: "primary",
+    iconeCls: "bg-primary/10 text-primary",
+    acaoCls: "text-primary",
     botao: true,
   },
   {
@@ -40,7 +42,8 @@ const plataformas: Plataforma[] = [
     icon: FileText,
     title: "Ata Fácil IA",
     desc: "Geração de atas de assembleia com inteligência artificial.",
-    cor: "ata",
+    iconeCls: "bg-ata/10 text-ata",
+    acaoCls: "text-ata",
     botao: false,
   },
   {
@@ -48,7 +51,8 @@ const plataformas: Plataforma[] = [
     icon: Sparkles,
     title: "Contas Limpas",
     desc: "Gestão dos pagamentos de limpeza por prédio.",
-    cor: "limpas",
+    iconeCls: "bg-limpas/10 text-limpas",
+    acaoCls: "text-limpas",
     botao: false,
   },
 ];
@@ -59,7 +63,7 @@ function Cartao({ p }: { p: Plataforma }) {
   const inner = (
     <>
       <div className="flex items-start justify-between mb-6">
-        <div className={`rounded-2xl p-3 text-${p.cor} bg-${p.cor}/10`}>
+        <div className={`rounded-2xl p-3 ${p.iconeCls}`}>
           <p.icon className="h-8 w-8" strokeWidth={1.5} />
         </div>
         <span className="text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100">
@@ -78,7 +82,7 @@ function Cartao({ p }: { p: Plataforma }) {
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </span>
       ) : (
-        <span className={`inline-flex items-center gap-2 font-semibold text-${p.cor}`}>
+        <span className={`inline-flex items-center gap-2 font-semibold ${p.acaoCls}`}>
           Abrir noutro separador
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </span>
