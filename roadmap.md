@@ -3,3 +3,6 @@
 - [x] Melhorar marcação e eventos do calendário.
 - [x] Registar ata, número, data, frações, envio por email/carta e PDF opcional.
 - [x] Validar gravação, reabertura e cores dos estados.
+- [ ] Aplicar ficha lateral por secções na criação e edição.
+- [ ] Mostrar ata apenas após convocatória enviada, preservando dados.
+- [ ] Verificar abertura, edição, gravação e reabertura da ficha.

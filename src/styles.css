@@ -33,6 +33,10 @@
   --color-meeting-minutes: var(--meeting-minutes);
   --color-meeting-minutes-foreground: var(--meeting-minutes-foreground);
   --color-meeting-sent: var(--meeting-sent);
+  --color-meeting-sheet-background: var(--meeting-sheet-background);
+  --color-meeting-sheet-surface: var(--meeting-sheet-surface);
+  --color-meeting-sheet-primary: var(--meeting-sheet-primary);
+  --color-meeting-sheet-border: var(--meeting-sheet-border);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -71,6 +75,11 @@
   --meeting-minutes: oklch(0.85 0.17 92);
   --meeting-minutes-foreground: oklch(0.42 0.09 80);
   --meeting-sent: oklch(0.46 0.13 155);
+  --meeting-sheet-background: #FAFBFC;
+  --meeting-sheet-surface: #FFFFFF;
+  --meeting-sheet-primary: #2463A6;
+  --meeting-sheet-border: #DCE7F2;
+  --meeting-sheet-shadow: -20px 0 60px -15px color-mix(in srgb, var(--foreground) 14%, transparent);
   --ata: oklch(0.62 0.11 185);
   --limpas: oklch(0.6 0.15 295);
   --border: oklch(0.92 0.008 250);
@@ -109,6 +118,10 @@
   --meeting-minutes: oklch(0.82 0.15 92);
   --meeting-minutes-foreground: oklch(0.88 0.13 92);
   --meeting-sent: oklch(0.73 0.14 155);
+  --meeting-sheet-background: var(--background);
+  --meeting-sheet-surface: var(--card);
+  --meeting-sheet-primary: var(--primary);
+  --meeting-sheet-border: var(--border);
   --ata: oklch(0.72 0.11 185);
   --limpas: oklch(0.7 0.14 295);
   --border: oklch(1 0 0 / 12%);
@@ -132,4 +145,26 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+}
+
+.assembly-sheet {
+  font-family: "Manrope", sans-serif;
+  box-shadow: var(--meeting-sheet-shadow);
+}
+.assembly-sheet h2, .assembly-sheet h3, .assembly-sheet-number {
+  font-family: "Sora", sans-serif;
+}
+.assembly-sheet input:not([type="file"]), .assembly-sheet select, .assembly-sheet textarea {
+  min-width: 0;
+  border-radius: 0;
+  border-color: var(--meeting-sheet-border);
+  background: var(--meeting-sheet-background);
+}
+.assembly-sheet input:not([type="file"]), .assembly-sheet select { height: 3rem; }
+.assembly-sheet textarea { padding: 1rem; }
+.assembly-sheet input:focus-visible, .assembly-sheet select:focus-visible, .assembly-sheet textarea:focus-visible {
+  outline-color: var(--meeting-sheet-primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .assembly-sheet { animation: none !important; transition: none !important; }
 }
