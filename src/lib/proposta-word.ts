@@ -83,13 +83,10 @@ export async function descarregarProposta(p: Proposta) {
     styles: { default: { document: { run: { font: "Arial", size: 21 } } } },
     numbering: { config: [{ reference: "b", levels: [{ level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 300 } } } }] }] },
     sections: [{
-      properties: { page: { margin: { top: 1134, bottom: 1134, left: 1440, right: 1440 } } },
-      footers: { default: footer },
+      properties: { page: { margin: { top: 1134, bottom: 1134, left: 1440, right: 1440 } }, titlePage: true },
+      footers: { default: footer, first: new Footer({ children: [new Paragraph({})] }) },
       children: [
-        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new ImageRun({ type: "png", data: capa, transformation: { width: 575, height: 862 }, altText: { title: "Capa", description: "Capa da proposta", name: "capa" } })] }),
-        P(p.nome || "Condomínio", { b: true, s: 22, a: AlignmentType.CENTER, after: 40 }),
-        P(p.morada, { s: 20, a: AlignmentType.CENTER, after: 40 }),
-        P(`Proposta n.º ${p.numero || "—"} · ${hoje}`, { s: 20, c: "666666", a: AlignmentType.CENTER }),
+        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 400 }, children: [new ImageRun({ type: "png", data: capa, transformation: { width: 602, height: 903 }, altText: { title: "Capa", description: "Capa da proposta", name: "capa" } })] }),
         new Paragraph({ children: [new PageBreak()] }),
 
         H("Apresentação"),
