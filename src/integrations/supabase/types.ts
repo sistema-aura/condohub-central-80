@@ -16,6 +16,12 @@ export type Database = {
     Tables: {
       assembleias: {
         Row: {
+          ata_data: string | null
+          ata_feita: boolean
+          ata_fracoes: Json
+          ata_numero: string | null
+          ata_pdf_nome: string | null
+          ata_pdf_path: string | null
           avisada_convocatoria: boolean
           avisada_reuniao: boolean
           convocatoria_enviada: boolean
@@ -29,6 +35,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ata_data?: string | null
+          ata_feita?: boolean
+          ata_fracoes?: Json
+          ata_numero?: string | null
+          ata_pdf_nome?: string | null
+          ata_pdf_path?: string | null
           avisada_convocatoria?: boolean
           avisada_reuniao?: boolean
           convocatoria_enviada?: boolean
@@ -42,6 +54,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ata_data?: string | null
+          ata_feita?: boolean
+          ata_fracoes?: Json
+          ata_numero?: string | null
+          ata_pdf_nome?: string | null
+          ata_pdf_path?: string | null
           avisada_convocatoria?: boolean
           avisada_reuniao?: boolean
           convocatoria_enviada?: boolean
@@ -202,12 +220,14 @@ export type Database = {
           codigo_postal: string | null
           created_at: string
           created_by: string | null
+          fracoes_ata: Json
           id: string
           identificacao_interna: string | null
           localidade: string | null
           morada: string | null
           nome: string
           observacoes: string | null
+          quantidade_fracoes: number | null
           updated_at: string
         }
         Insert: {
@@ -217,12 +237,14 @@ export type Database = {
           codigo_postal?: string | null
           created_at?: string
           created_by?: string | null
+          fracoes_ata?: Json
           id?: string
           identificacao_interna?: string | null
           localidade?: string | null
           morada?: string | null
           nome: string
           observacoes?: string | null
+          quantidade_fracoes?: number | null
           updated_at?: string
         }
         Update: {
@@ -232,12 +254,14 @@ export type Database = {
           codigo_postal?: string | null
           created_at?: string
           created_by?: string | null
+          fracoes_ata?: Json
           id?: string
           identificacao_interna?: string | null
           localidade?: string | null
           morada?: string | null
           nome?: string
           observacoes?: string | null
+          quantidade_fracoes?: number | null
           updated_at?: string
         }
         Relationships: []

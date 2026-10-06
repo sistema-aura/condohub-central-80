@@ -1,0 +1,2 @@
+ALTER TABLE public.edificios ADD COLUMN IF NOT EXISTS quantidade_fracoes integer CHECK (quantidade_fracoes IS NULL OR quantidade_fracoes >= 0);
+COMMENT ON COLUMN public.edificios.quantidade_fracoes IS 'Quantidade de frações da listagem original; identificações concretas são editáveis em fracoes_ata.';

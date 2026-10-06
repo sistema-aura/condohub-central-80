@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, AlertTriangle, Users, LogOut, FileCheck, CalendarDays, Mail, ListTodo, Wrench, FileSignature } from "lucide-react";
+import { Building2, LayoutDashboard, AlertTriangle, Users, LogOut, FileCheck, CalendarDays, Mail, ListTodo, Wrench, FileSignature } from "lucide-react";
 
 import logoMark from "@/assets/logo-mark.png.asset.json";
 
@@ -27,7 +27,7 @@ export function AppSidebar() {
 
   const items = [
     { title: "Início", url: "/inicio", icon: LayoutDashboard },
-    { title: "Edifícios", url: "/dashboard", icon: LayoutDashboard },
+    { title: "Edifícios", url: "/dashboard", icon: Building2 },
     { title: "Alertas", url: "/alertas", icon: AlertTriangle },
     { title: "Agenda", url: "/agenda", icon: ListTodo },
     { title: "Vistorias", url: "/vistorias", icon: Wrench },
