@@ -9,60 +9,43 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedVistoriasRouteImport } from './routes/_authenticated/vistorias'
-import { Route as AuthenticatedUtilizadoresRouteImport } from './routes/_authenticated/utilizadores'
-import { Route as AuthenticatedEmailsRouteImport } from './routes/_authenticated/emails'
-import { Route as AuthenticatedDeclaracoesRouteImport } from './routes/_authenticated/declaracoes'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedAssembleiasRouteImport } from './routes/_authenticated/assembleias'
-import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
-import { Route as AuthenticatedEdificiosNovoRouteImport } from './routes/_authenticated/edificios.novo'
+import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
+import { Route as AuthenticatedAssembleiasRouteImport } from './routes/_authenticated/assembleias'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDeclaracoesRouteImport } from './routes/_authenticated/declaracoes'
+import { Route as AuthenticatedEmailsRouteImport } from './routes/_authenticated/emails'
+import { Route as AuthenticatedUtilizadoresRouteImport } from './routes/_authenticated/utilizadores'
+import { Route as AuthenticatedVistoriasRouteImport } from './routes/_authenticated/vistorias'
 import { Route as AuthenticatedEdificiosIdRouteImport } from './routes/_authenticated/edificios.$id'
+import { Route as AuthenticatedEdificiosNovoRouteImport } from './routes/_authenticated/edificios.novo'
 import { Route as ApiPublicTelegramAvisosRouteImport } from './routes/api/public/telegram/avisos'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedVistoriasRoute = AuthenticatedVistoriasRouteImport.update({
-  id: '/vistorias',
-  path: '/vistorias',
+const AuthenticatedAgendaRoute = AuthenticatedAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedUtilizadoresRoute =
-  AuthenticatedUtilizadoresRouteImport.update({
-    id: '/utilizadores',
-    path: '/utilizadores',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedEmailsRoute = AuthenticatedEmailsRouteImport.update({
-  id: '/emails',
-  path: '/emails',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDeclaracoesRoute =
-  AuthenticatedDeclaracoesRouteImport.update({
-    id: '/declaracoes',
-    path: '/declaracoes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AuthenticatedAlertasRoute = AuthenticatedAlertasRouteImport.update({
+  id: '/alertas',
+  path: '/alertas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAssembleiasRoute =
@@ -71,26 +54,43 @@ const AuthenticatedAssembleiasRoute =
     path: '/assembleias',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAlertasRoute = AuthenticatedAlertasRouteImport.update({
-  id: '/alertas',
-  path: '/alertas',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAgendaRoute = AuthenticatedAgendaRouteImport.update({
-  id: '/agenda',
-  path: '/agenda',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedEdificiosNovoRoute =
-  AuthenticatedEdificiosNovoRouteImport.update({
-    id: '/edificios/novo',
-    path: '/edificios/novo',
+const AuthenticatedDeclaracoesRoute =
+  AuthenticatedDeclaracoesRouteImport.update({
+    id: '/declaracoes',
+    path: '/declaracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEmailsRoute = AuthenticatedEmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUtilizadoresRoute =
+  AuthenticatedUtilizadoresRouteImport.update({
+    id: '/utilizadores',
+    path: '/utilizadores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedVistoriasRoute = AuthenticatedVistoriasRouteImport.update({
+  id: '/vistorias',
+  path: '/vistorias',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedEdificiosIdRoute =
   AuthenticatedEdificiosIdRouteImport.update({
     id: '/edificios/$id',
     path: '/edificios/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEdificiosNovoRoute =
+  AuthenticatedEdificiosNovoRouteImport.update({
+    id: '/edificios/novo',
+    path: '/edificios/novo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const ApiPublicTelegramAvisosRoute = ApiPublicTelegramAvisosRouteImport.update({
@@ -204,11 +204,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -218,53 +218,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/vistorias': {
-      id: '/_authenticated/vistorias'
-      path: '/vistorias'
-      fullPath: '/vistorias'
-      preLoaderRoute: typeof AuthenticatedVistoriasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/utilizadores': {
-      id: '/_authenticated/utilizadores'
-      path: '/utilizadores'
-      fullPath: '/utilizadores'
-      preLoaderRoute: typeof AuthenticatedUtilizadoresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/emails': {
-      id: '/_authenticated/emails'
-      path: '/emails'
-      fullPath: '/emails'
-      preLoaderRoute: typeof AuthenticatedEmailsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/declaracoes': {
-      id: '/_authenticated/declaracoes'
-      path: '/declaracoes'
-      fullPath: '/declaracoes'
-      preLoaderRoute: typeof AuthenticatedDeclaracoesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/assembleias': {
-      id: '/_authenticated/assembleias'
-      path: '/assembleias'
-      fullPath: '/assembleias'
-      preLoaderRoute: typeof AuthenticatedAssembleiasRouteImport
+    '/_authenticated/agenda': {
+      id: '/_authenticated/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AuthenticatedAgendaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/alertas': {
@@ -274,18 +239,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlertasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/agenda': {
-      id: '/_authenticated/agenda'
-      path: '/agenda'
-      fullPath: '/agenda'
-      preLoaderRoute: typeof AuthenticatedAgendaRouteImport
+    '/_authenticated/assembleias': {
+      id: '/_authenticated/assembleias'
+      path: '/assembleias'
+      fullPath: '/assembleias'
+      preLoaderRoute: typeof AuthenticatedAssembleiasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/edificios/novo': {
-      id: '/_authenticated/edificios/novo'
-      path: '/edificios/novo'
-      fullPath: '/edificios/novo'
-      preLoaderRoute: typeof AuthenticatedEdificiosNovoRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/declaracoes': {
+      id: '/_authenticated/declaracoes'
+      path: '/declaracoes'
+      fullPath: '/declaracoes'
+      preLoaderRoute: typeof AuthenticatedDeclaracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/emails': {
+      id: '/_authenticated/emails'
+      path: '/emails'
+      fullPath: '/emails'
+      preLoaderRoute: typeof AuthenticatedEmailsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/utilizadores': {
+      id: '/_authenticated/utilizadores'
+      path: '/utilizadores'
+      fullPath: '/utilizadores'
+      preLoaderRoute: typeof AuthenticatedUtilizadoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/vistorias': {
+      id: '/_authenticated/vistorias'
+      path: '/vistorias'
+      fullPath: '/vistorias'
+      preLoaderRoute: typeof AuthenticatedVistoriasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/edificios/$id': {
@@ -293,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/edificios/$id'
       fullPath: '/edificios/$id'
       preLoaderRoute: typeof AuthenticatedEdificiosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/edificios/novo': {
+      id: '/_authenticated/edificios/novo'
+      path: '/edificios/novo'
+      fullPath: '/edificios/novo'
+      preLoaderRoute: typeof AuthenticatedEdificiosNovoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/telegram/avisos': {
