@@ -78,6 +78,13 @@
       "when": 1791288627762,
       "tag": "0010_create_propostas",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791306175160,
+      "tag": "0011_assembleias_registo_atas",
+      "breakpoints": true
     }
   ]
 }

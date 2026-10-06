@@ -1,0 +1,4 @@
+ALTER TABLE public.assembleias ADD COLUMN IF NOT EXISTS ata_feita boolean NOT NULL DEFAULT false, ADD COLUMN IF NOT EXISTS ata_numero text, ADD COLUMN IF NOT EXISTS ata_data date, ADD COLUMN IF NOT EXISTS ata_fracoes jsonb NOT NULL DEFAULT '[]'::jsonb, ADD COLUMN IF NOT EXISTS ata_pdf_path text, ADD COLUMN IF NOT EXISTS ata_pdf_nome text;
+ALTER TABLE public.edificios ADD COLUMN IF NOT EXISTS fracoes_ata jsonb NOT NULL DEFAULT '[]'::jsonb;
+COMMENT ON COLUMN public.assembleias.ata_fracoes IS 'Lista de frações e registo manual de envio da ata por email/carta; não envia emails nem cartas.';
+COMMENT ON COLUMN public.edificios.fracoes_ata IS 'Identificadores de frações reutilizados ao criar atas de assembleias do edifício.';
