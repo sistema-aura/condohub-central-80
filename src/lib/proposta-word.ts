@@ -2,7 +2,7 @@ import {
   AlignmentType, BorderStyle, Document, Footer, ImageRun, LevelFormat, Packer, PageBreak, Paragraph,
   ShadingType, Table, TableCell, TableRow, TextRun, WidthType,
 } from "docx";
-import logoFull from "@/assets/logo-dinamico.png.asset.json";
+import logoFull from "@/assets/logo-dinamico-transparente.png";
 
 export const PRECOS = { fracao: 8.5, loja: 6.5, elevador: 2.5, garagem: 3, estacionamento: 2, manutencao: 15 };
 export const IVA = 0.23;
@@ -54,7 +54,7 @@ function cell(t: string, w: number, o: { b?: boolean; fill?: string; c?: string;
 }
 
 export async function descarregarProposta(p: Proposta) {
-  const logo = new Uint8Array(await (await fetch(logoFull.url)).arrayBuffer());
+  const logo = new Uint8Array(await (await fetch(logoFull)).arrayBuffer());
   const t = totais(p);
   const cols = [6026, 1200, 1800];
   const row = (c: string[], o: { b?: boolean; fill?: string; c?: string } = {}) =>
