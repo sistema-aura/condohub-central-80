@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2, FileText, Sparkles, ArrowRight, ArrowUpRight } from "lucide-react";
-import logoFull from "@/assets/logo-dinamico.png.asset.json";
+import logoFull from "@/assets/logo-dinamico-transparente.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -110,7 +110,7 @@ function Inicio() {
       </div>
       <div className="flex w-full max-w-6xl flex-col items-center gap-12">
         <div className="flex flex-col items-center text-center">
-          <img src={logoFull.url} alt="DINÂMICO — Gestão de Condomínios" className="h-24 object-contain" />
+          <img src={logoFull} alt="DINÂMICO — Gestão de Condomínios" className="h-24 object-contain" />
           <p className="mt-6 text-lg font-medium italic text-muted-foreground">Escolhe a plataforma</p>
         </div>
         <div className="grid w-full gap-8 md:grid-cols-3">

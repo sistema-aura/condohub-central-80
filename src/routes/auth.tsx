@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import logoMark from "@/assets/logo-mark.png.asset.json";
-import logoFull from "@/assets/logo-dinamico.png.asset.json";
+import logoFull from "@/assets/logo-dinamico-transparente.png";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -113,7 +113,7 @@ function AuthPage() {
         <Card className="w-full max-w-sm">
           <CardHeader className="items-center text-center">
             <img
-              src={logoFull.url}
+              src={logoFull}
               alt="Dinâmico — Gestão de Condomínios"
               className="mx-auto mb-2 h-28 w-auto object-contain"
             />
