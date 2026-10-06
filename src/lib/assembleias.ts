@@ -5,7 +5,7 @@ export type Assembleia = {
   ata_feita: boolean; ata_numero: string | null; ata_data: string | null;
   ata_fracoes: unknown; ata_pdf_path: string | null; ata_pdf_nome: string | null;
 };
-export type EdificioAssembleia = { id: string; nome: string; identificacao_interna: string | null; fracoes_ata: unknown };
+export type EdificioAssembleia = { id: string; nome: string; identificacao_interna: string | null; fracoes_ata: unknown; quantidade_fracoes: number | null };
 export const pad = (n: number) => String(n).padStart(2, "0");
 export const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 export function lerFracoes(value: unknown): FracaoAta[] {

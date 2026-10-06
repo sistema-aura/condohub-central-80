@@ -23,7 +23,7 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
     const saved = lerFracoes(a?.ata_fracoes);
     return saved.length ? saved : fracoesEdificio(edificios.find((e) => e.id === a?.edificio_id)?.fracoes_ata);
   });
-  const [quantidade, setQuantidade] = useState("");
+  const [quantidade, setQuantidade] = useState(() => String(edificios.find((e) => e.id === a?.edificio_id)?.quantidade_fracoes ?? ""));
   const [file, setFile] = useState<File | null>(null);
   const [removePdf, setRemovePdf] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -33,6 +33,7 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
   const escolherEdificio = (id: string) => {
     setForm({ ...form, edificio_id: id });
     setFracoes(fracoesEdificio(edificios.find((e) => e.id === id)?.fracoes_ata));
+    setQuantidade(String(edificios.find((e) => e.id === id)?.quantidade_fracoes ?? ""));
   };
   const gerarFracoes = () => {
     const n = Number(quantidade);

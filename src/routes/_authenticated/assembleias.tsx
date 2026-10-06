@@ -23,7 +23,7 @@ function Page() {
   const qc = useQueryClient();
   const [mes, setMes] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); });
   const [form, setForm] = useState<{ dia: string; assembleia?: Ass } | null>(null);
-  const eds = useQuery({ queryKey: ["eds-assembleias"], queryFn: async () => { const { data, error } = await supabase.from("edificios").select("id,nome,identificacao_interna,fracoes_ata").order("identificacao_interna"); if (error) throw error; return data as Ed[]; } });
+  const eds = useQuery({ queryKey: ["eds-assembleias"], queryFn: async () => { const { data, error } = await supabase.from("edificios").select("id,nome,identificacao_interna,fracoes_ata,quantidade_fracoes").order("identificacao_interna"); if (error) throw error; return data as Ed[]; } });
   const ass = useQuery({ queryKey: ["assembleias"], queryFn: async () => { const { data, error } = await supabase.from("assembleias").select("*").order("data_hora"); if (error) throw error; return data as Ass[]; } });
   const edMap = new Map((eds.data ?? []).map((e) => [e.id, e]));
   const nomeEd = (id: string) => { const e = edMap.get(id); return e ? `${e.identificacao_interna ? e.identificacao_interna + " · " : ""}${e.nome}` : "—"; };
