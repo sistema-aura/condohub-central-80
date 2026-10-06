@@ -2,7 +2,7 @@ import {
   AlignmentType, BorderStyle, Document, Footer, ImageRun, LevelFormat, Packer, PageBreak, Paragraph,
   ShadingType, Table, TableCell, TableRow, TextRun, WidthType,
 } from "docx";
-import logoFull from "@/assets/logo-dinamico-transparente.png";
+import capaProposta from "@/assets/capa-proposta.png";
 
 export const PRECOS = { fracao: 8.5, loja: 6.5, elevador: 2.5, garagem: 3, estacionamento: 2, manutencao: 15 };
 export const IVA = 0.23;
@@ -35,13 +35,13 @@ export const eur = (n: number) => n.toLocaleString("pt-PT", { minimumFractionDig
 const TEAL = "1F7A7A";
 const W = 9026;
 const P = (t: string, o: { b?: boolean; s?: number; c?: string; a?: (typeof AlignmentType)[keyof typeof AlignmentType]; after?: number } = {}) =>
-  new Paragraph({ alignment: o.a, spacing: { after: o.after ?? 120 }, children: [new TextRun({ text: t, bold: o.b, size: o.s, color: o.c })] });
+  new Paragraph({ alignment: o.a ?? AlignmentType.JUSTIFIED, spacing: { after: o.after ?? 120 }, children: [new TextRun({ text: t, bold: o.b, size: o.s, color: o.c })] });
 const H = (t: string) => new Paragraph({
   spacing: { before: 280, after: 140 },
   border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: TEAL, space: 2 } },
   children: [new TextRun({ text: t.toUpperCase(), bold: true, size: 26, color: TEAL })],
 });
-const B = (t: string) => new Paragraph({ numbering: { reference: "b", level: 0 }, spacing: { after: 60 }, children: [new TextRun(t)] });
+const B = (t: string) => new Paragraph({ alignment: AlignmentType.JUSTIFIED, numbering: { reference: "b", level: 0 }, spacing: { after: 60 }, children: [new TextRun(t)] });
 
 function cell(t: string, w: number, o: { b?: boolean; fill?: string; c?: string; right?: boolean } = {}) {
   const bd = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
@@ -54,7 +54,7 @@ function cell(t: string, w: number, o: { b?: boolean; fill?: string; c?: string;
 }
 
 export async function descarregarProposta(p: Proposta) {
-  const logo = new Uint8Array(await (await fetch(logoFull)).arrayBuffer());
+  const capa = new Uint8Array(await (await fetch(capaProposta)).arrayBuffer());
   const t = totais(p);
   const cols = [6026, 1200, 1800];
   const row = (c: string[], o: { b?: boolean; fill?: string; c?: string } = {}) =>
@@ -86,12 +86,10 @@ export async function descarregarProposta(p: Proposta) {
       properties: { page: { margin: { top: 1134, bottom: 1134, left: 1440, right: 1440 } } },
       footers: { default: footer },
       children: [
-        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 1800, after: 600 }, children: [new ImageRun({ type: "png", data: logo, transformation: { width: 260, height: 260 }, altText: { title: "Logo", description: "Dinâmico", name: "logo" } })] }),
-        P("PROPOSTA DE GESTÃO", { b: true, s: 48, c: TEAL, a: AlignmentType.CENTER, after: 200 }),
-        P("Administração e Gestão do Edifício", { s: 28, a: AlignmentType.CENTER, after: 800 }),
-        P(p.nome || "Condomínio", { b: true, s: 28, a: AlignmentType.CENTER }),
-        P(p.morada, { a: AlignmentType.CENTER }),
-        P(`Proposta n.º ${p.numero || "—"} · ${hoje}`, { c: "666666", a: AlignmentType.CENTER }),
+        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new ImageRun({ type: "png", data: capa, transformation: { width: 575, height: 862 }, altText: { title: "Capa", description: "Capa da proposta", name: "capa" } })] }),
+        P(p.nome || "Condomínio", { b: true, s: 22, a: AlignmentType.CENTER, after: 40 }),
+        P(p.morada, { s: 20, a: AlignmentType.CENTER, after: 40 }),
+        P(`Proposta n.º ${p.numero || "—"} · ${hoje}`, { s: 20, c: "666666", a: AlignmentType.CENTER }),
         new Paragraph({ children: [new PageBreak()] }),
 
         H("Apresentação"),

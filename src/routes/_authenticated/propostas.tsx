@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { PRECOS, descarregarProposta, eur, linhas, totais, type Proposta } from "@/lib/proposta-word";
+import { descarregarProposta, eur, linhas, totais, type Proposta } from "@/lib/proposta-word";
 
 export const Route = createFileRoute("/_authenticated/propostas")({
   head: () => ({
@@ -25,12 +25,11 @@ export const Route = createFileRoute("/_authenticated/propostas")({
 
 const INICIAL: Proposta = { nome: "", morada: "", numero: "", fracoes: 0, lojas: 0, elevadores: 0, garagens: 0, estacionamentos: 0, manutencao: false, limpeza: false, limpezaValor: 0, limpezaFreq: "1 vez por semana" };
 
-function Contador({ label, preco, value, onChange }: { label: string; preco: number; value: number; onChange: (n: number) => void }) {
+function Contador({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
   return (
     <div className="flex items-center justify-between rounded-xl border bg-card p-3">
       <div>
         <div className="text-sm font-medium">{label}</div>
-        <div className="text-xs text-muted-foreground">{eur(preco)} / unid.</div>
       </div>
       <div className="flex items-center gap-1">
         <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => onChange(Math.max(0, value - 1))}><Minus className="h-3 w-3" /></Button>
@@ -106,18 +105,18 @@ function Propostas() {
             <section className="space-y-3">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Composição</h2>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Contador label="Frações" preco={PRECOS.fracao} value={p.fracoes} onChange={(n) => set("fracoes", n)} />
-                <Contador label="Lojas" preco={PRECOS.loja} value={p.lojas} onChange={(n) => set("lojas", n)} />
-                <Contador label="Elevadores" preco={PRECOS.elevador} value={p.elevadores} onChange={(n) => set("elevadores", n)} />
-                <Contador label="Garagens (box com portão)" preco={PRECOS.garagem} value={p.garagens} onChange={(n) => set("garagens", n)} />
-                <Contador label="Estacionamentos (só lugar)" preco={PRECOS.estacionamento} value={p.estacionamentos} onChange={(n) => set("estacionamentos", n)} />
+                <Contador label="Frações" value={p.fracoes} onChange={(n) => set("fracoes", n)} />
+                <Contador label="Lojas" value={p.lojas} onChange={(n) => set("lojas", n)} />
+                <Contador label="Elevadores" value={p.elevadores} onChange={(n) => set("elevadores", n)} />
+                <Contador label="Garagens (box com portão)" value={p.garagens} onChange={(n) => set("garagens", n)} />
+                <Contador label="Estacionamentos (só lugar)" value={p.estacionamentos} onChange={(n) => set("estacionamentos", n)} />
               </div>
             </section>
 
             <section className="space-y-3">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Serviços extra</h2>
               <label className="flex cursor-pointer items-center justify-between rounded-xl border p-4">
-                <div className="flex items-center gap-3"><Wrench className="h-5 w-5 text-primary" /><div><div className="font-medium">Manutenção</div><div className="text-xs text-muted-foreground">1 visita mensal · {eur(PRECOS.manutencao)}</div></div></div>
+                <div className="flex items-center gap-3"><Wrench className="h-5 w-5 text-primary" /><div><div className="font-medium">Manutenção</div><div className="text-xs text-muted-foreground">1 visita mensal</div></div></div>
                 <Switch checked={p.manutencao} onCheckedChange={(v) => set("manutencao", v)} />
               </label>
               <div className="rounded-xl border p-4">
