@@ -43,7 +43,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/inicio", replace: true });
+      if (data.session) navigate({ to: "/dashboard", replace: true });
     });
   }, [navigate]);
 
@@ -56,7 +56,7 @@ function AuthPage() {
         return;
       }
       toast.success("Conta criada. Bem-vindo!");
-      navigate({ to: "/inicio", replace: true });
+      navigate({ to: "/dashboard", replace: true });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -83,7 +83,7 @@ function AuthPage() {
         void supabase.auth.signOut();
       });
     }
-    navigate({ to: "/inicio", replace: true });
+    navigate({ to: "/dashboard", replace: true });
   }
 
   const busy = loading || bootstrap.isPending;
