@@ -227,6 +227,7 @@ export type Database = {
           morada: string | null
           nome: string
           observacoes: string | null
+          quantidade_fracoes: number | null
           updated_at: string
         }
         Insert: {
@@ -243,6 +244,7 @@ export type Database = {
           morada?: string | null
           nome: string
           observacoes?: string | null
+          quantidade_fracoes?: number | null
           updated_at?: string
         }
         Update: {
@@ -259,6 +261,7 @@ export type Database = {
           morada?: string | null
           nome?: string
           observacoes?: string | null
+          quantidade_fracoes?: number | null
           updated_at?: string
         }
         Relationships: []

@@ -85,6 +85,13 @@
       "when": 1791306175160,
       "tag": "0011_assembleias_registo_atas",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791306339280,
+      "tag": "0012_edificios_quantidade_fracoes",
+      "breakpoints": true
     }
   ]
 }
