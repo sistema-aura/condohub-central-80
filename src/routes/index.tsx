@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Building2, FileText, Sparkles, ArrowUpRight } from "lucide-react";
+import { Building2, FileText, Sparkles, ArrowRight, ArrowUpRight } from "lucide-react";
 import logoFull from "@/assets/logo-dinamico.png.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -16,44 +16,104 @@ export const Route = createFileRoute("/")({
   component: Inicio,
 });
 
-const cardCls =
-  "group relative flex flex-col gap-4 rounded-2xl border bg-card p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:border-primary/50";
+type Plataforma = {
+  to?: string;
+  href?: string;
+  icon: typeof Building2;
+  title: string;
+  desc: string;
+  cor: string;
+  botao: boolean;
+};
 
-function CardBody({ icon: Icon, title, desc, ext }: { icon: typeof Building2; title: string; desc: string; ext?: boolean }) {
-  return (
+const plataformas: Plataforma[] = [
+  {
+    to: "/auth",
+    icon: Building2,
+    title: "Condomínio Dinâmico",
+    desc: "Edifícios, documentos, declarações, assembleias, agenda, vistorias, emails e propostas.",
+    cor: "primary",
+    botao: true,
+  },
+  {
+    href: "https://ata-ia.lovable.app",
+    icon: FileText,
+    title: "Ata Fácil IA",
+    desc: "Geração de atas de assembleia com inteligência artificial.",
+    cor: "ata",
+    botao: false,
+  },
+  {
+    href: "https://limpezasdinamico.lovable.app",
+    icon: Sparkles,
+    title: "Contas Limpas",
+    desc: "Gestão dos pagamentos de limpeza por prédio.",
+    cor: "limpas",
+    botao: false,
+  },
+];
+
+function Cartao({ p }: { p: Plataforma }) {
+  const cls =
+    "group relative flex flex-col rounded-3xl border bg-card/80 p-8 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-black/5";
+  const inner = (
     <>
-      <div className="flex items-center justify-between">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Icon className="h-6 w-6" />
+      <div className="flex items-start justify-between mb-6">
+        <div className={`rounded-2xl p-3 text-${p.cor} bg-${p.cor}/10`}>
+          <p.icon className="h-8 w-8" strokeWidth={1.5} />
         </div>
-        <ArrowUpRight className="h-5 w-5 text-muted-foreground transition group-hover:text-primary" />
+        <span className="text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100">
+          {p.botao ? (
+            <ArrowRight className="h-5 w-5" />
+          ) : (
+            <ArrowUpRight className="h-5 w-5" />
+          )}
+        </span>
       </div>
-      <div>
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{desc}</p>
-      </div>
-      <span className="mt-auto text-sm font-medium text-primary">{ext ? "Abrir noutro separador" : "Entrar"}</span>
+      <h2 className="text-xl font-bold mb-3">{p.title}</h2>
+      <p className="text-muted-foreground text-sm leading-relaxed mb-8 flex-grow">{p.desc}</p>
+      {p.botao ? (
+        <span className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all group-hover:brightness-110 group-active:scale-95">
+          Entrar
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </span>
+      ) : (
+        <span className={`inline-flex items-center gap-2 font-semibold text-${p.cor}`}>
+          Abrir noutro separador
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </span>
+      )}
     </>
+  );
+  return p.to ? (
+    <Link to={p.to} className={cls}>
+      {inner}
+    </Link>
+  ) : (
+    <a href={p.href} target="_blank" rel="noreferrer" className={cls}>
+      {inner}
+    </a>
   );
 }
 
 function Inicio() {
   return (
-    <div className="mx-auto flex min-h-svh max-w-5xl flex-col justify-center px-4 py-10">
-      <div className="mb-10 flex flex-col items-center text-center">
-        <img src={logoFull.url} alt="Dinâmico" className="h-24 object-contain" />
-        <p className="mt-3 text-muted-foreground">Escolhe a plataforma</p>
+    <div className="relative flex min-h-svh items-center justify-center overflow-hidden p-6">
+      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+        <div className="absolute -top-1/4 -left-1/4 h-[40%] w-[40%] rounded-full bg-primary/15 blur-[120px]" />
+        <div className="absolute -bottom-1/4 -right-1/4 h-[40%] w-[40%] rounded-full bg-ata/20 blur-[120px]" />
+        <div className="absolute top-1/3 left-1/2 h-[30%] w-[30%] -translate-x-1/2 rounded-full bg-limpas/10 blur-[120px]" />
       </div>
-      <div className="grid gap-6 md:grid-cols-3">
-        <Link to="/auth" className={cardCls}>
-          <CardBody icon={Building2} title="Condomínio Dinâmico" desc="Edifícios, documentos, declarações, assembleias, agenda, vistorias, emails e propostas." />
-        </Link>
-        <a href="https://ata-ia.lovable.app" target="_blank" rel="noreferrer" className={cardCls}>
-          <CardBody icon={FileText} title="Ata Fácil IA" desc="Geração de atas de assembleia com inteligência artificial." ext />
-        </a>
-        <a href="https://limpezasdinamico.lovable.app" target="_blank" rel="noreferrer" className={cardCls}>
-          <CardBody icon={Sparkles} title="Contas Limpas" desc="Gestão dos pagamentos de limpeza por prédio." ext />
-        </a>
+      <div className="flex w-full max-w-6xl flex-col items-center gap-12">
+        <div className="flex flex-col items-center text-center">
+          <img src={logoFull.url} alt="DINÂMICO — Gestão de Condomínios" className="h-24 object-contain" />
+          <p className="mt-6 text-lg font-medium italic text-muted-foreground">Escolhe a plataforma</p>
+        </div>
+        <div className="grid w-full gap-8 md:grid-cols-3">
+          {plataformas.map((p) => (
+            <Cartao key={p.title} p={p} />
+          ))}
+        </div>
       </div>
     </div>
   );
