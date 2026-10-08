@@ -171,8 +171,8 @@ function AgendaPage() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <button onClick={() => setPessoa("todos")} className={`rounded-2xl border p-4 text-left transition hover:shadow-md ${pessoa === "todos" ? "border-primary bg-primary/5 ring-1 ring-primary" : "bg-card"}`}>
-          <div className="text-xs text-muted-foreground">Toda a equipa</div>
-          <div className="mt-1 text-2xl font-semibold">{tarefas.filter((t) => t.estado !== "concluida").length}</div>
+          <div className="text-xs text-muted-foreground">{eu ? `Espaço da ${eu}` : "Toda a equipa"}</div>
+          <div className="mt-1 text-2xl font-semibold">{tarefas.filter((t) => t.estado !== "concluida" && envolvida(t, eu)).length}</div>
           <div className="text-xs text-muted-foreground">por concluir</div>
         </button>
         {PESSOAS.map((p) => (
