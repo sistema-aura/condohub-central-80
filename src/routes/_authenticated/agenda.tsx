@@ -164,7 +164,7 @@ function AgendaPage() {
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Equipa Dinâmico</p>
           <h1 className="text-3xl font-semibold tracking-tight">Agenda</h1>
-          <p className="text-sm text-muted-foreground">Pedidos entre a equipa, por prédio. Avisos no Telegram às 10:30, 15:30 e 17:00.</p>
+          <p className="text-sm text-muted-foreground">{eu ? <>Estás no espaço da <span className="font-medium text-foreground">{eu}</span> — só vês os pedidos em que estás envolvida(o).</> : "Escolhe quem és no menu para ver o teu espaço."}</p>
         </div>
         <Button size="lg" className="rounded-full shadow-sm" onClick={() => setForm({ ...vazio })}><Plus className="mr-1 h-4 w-4" /> Nova tarefa</Button>
       </div>
