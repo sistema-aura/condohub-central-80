@@ -166,7 +166,7 @@ function AgendaPage() {
           <h1 className="text-3xl font-semibold tracking-tight">Agenda</h1>
           <p className="text-sm text-muted-foreground">{eu ? <>Estás no espaço da <span className="font-medium text-foreground">{eu}</span> — só vês os pedidos em que estás envolvida(o).</> : "Escolhe quem és no menu para ver o teu espaço."}</p>
         </div>
-        <Button size="lg" className="rounded-full shadow-sm" onClick={() => setForm({ ...vazio })}><Plus className="mr-1 h-4 w-4" /> Nova tarefa</Button>
+        <Button size="lg" className="rounded-full shadow-sm" onClick={() => setForm({ ...vazio, de_pessoa: eu ?? vazio.de_pessoa })}><Plus className="mr-1 h-4 w-4" /> Nova tarefa</Button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
