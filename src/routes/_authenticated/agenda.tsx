@@ -68,7 +68,7 @@ function AgendaPage() {
     queryFn: async () => {
       const { data, error } = await supabase.from("tarefas").select("*").order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Tarefa[];
+      return data as unknown as Tarefa[];
     },
   });
   const { data: eds = [] } = useQuery({
