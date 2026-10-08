@@ -1,0 +1,1 @@
+ALTER TABLE public.tarefas ADD COLUMN IF NOT EXISTS respostas jsonb NOT NULL DEFAULT '[]'::jsonb;
