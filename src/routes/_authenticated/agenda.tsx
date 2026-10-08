@@ -6,6 +6,7 @@ import { Send, Plus, Building2, StickyNote, Flag, CalendarClock, Check, Eye, Foo
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { notificarPessoas } from "@/lib/telegram.functions";
+import { usePessoaAtual } from "@/lib/pessoa-atual";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,8 +46,9 @@ type Tarefa = {
   id: string; titulo: string; descricao: string | null; edificio_id: string | null;
   de_pessoa: string; para_pessoa: string; estado: string; prioridade: boolean;
   prazo: string | null; concluida_em: string | null; created_at: string;
+  respostas?: { de: string; texto: string; em: string }[];
 };
-type Form = Omit<Tarefa, "id" | "concluida_em" | "created_at"> & { id?: string };
+type Form = Omit<Tarefa, "id" | "concluida_em" | "created_at" | "respostas"> & { id?: string };
 const vazio: Form = { titulo: "", descricao: "", edificio_id: null, de_pessoa: "Dina", para_pessoa: "Leonor", estado: "pendente", prioridade: false, prazo: null };
 
 function AgendaPage() {
@@ -58,6 +60,8 @@ function AgendaPage() {
   const [aviso, setAviso] = useState<{ texto: string; pessoas: string[]; tarefaId: string | null } | null>(null);
   const [enviando, setEnviando] = useState(false);
   const notificar = useServerFn(notificarPessoas);
+  const [eu] = usePessoaAtual();
+  const [resp, setResp] = useState<Record<string, string>>({});
 
   const { data: tarefas = [] } = useQuery({
     queryKey: ["tarefas"],
@@ -92,6 +96,16 @@ function AgendaPage() {
   ).sort((a, b) => Number(b.prioridade) - Number(a.prioridade) || (a.prazo ?? "9").localeCompare(b.prazo ?? "9")), [tarefas, vista, pessoa, q, eds]);
 
   const contagem = (p: string) => tarefas.filter((t) => t.para_pessoa === p && t.estado !== "concluida").length;
+
+  async function responder(t: Tarefa) {
+    const texto = (resp[t.id] ?? "").trim();
+    if (!eu || !texto) return;
+    const respostas = [...(t.respostas ?? []), { de: eu, texto, em: new Date().toISOString() }];
+    const { error } = await supabase.from("tarefas").update({ respostas }).eq("id", t.id);
+    if (error) return toast.error(error.message);
+    setResp({ ...resp, [t.id]: "" });
+    qc.invalidateQueries({ queryKey: ["tarefas"] });
+  }
 
   async function mudarEstado(t: Tarefa, estado: string) {
     const { error } = await supabase.from("tarefas").update({ estado, concluida_em: estado === "concluida" ? new Date().toISOString() : null }).eq("id", t.id);
@@ -205,6 +219,21 @@ function AgendaPage() {
                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 opacity-60 group-hover:opacity-100" onClick={() => setForm({ ...t })}><Pencil className="h-4 w-4" /></Button>
               </div>
               {t.descricao && <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">{t.descricao}</p>}
+              {(t.respostas ?? []).length > 0 && (
+                <div className="mt-3 space-y-2 border-l-2 border-primary/30 pl-3">
+                  {(t.respostas ?? []).map((r, i) => (
+                    <div key={i} className="text-sm">
+                      <span className={`mr-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${COR[r.de] ?? "bg-muted"}`}>{r.de}</span>
+                      <span className="text-[11px] text-muted-foreground">{new Date(r.em).toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short" })}</span>
+                      <p className="mt-0.5 whitespace-pre-wrap">{r.texto}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="mt-3 flex gap-2">
+                <Input value={resp[t.id] ?? ""} onChange={(e) => setResp({ ...resp, [t.id]: e.target.value })} onKeyDown={(e) => e.key === "Enter" && responder(t)} placeholder={eu ? `Responder como ${eu}…` : "Escolhe quem és no menu para responder"} disabled={!eu} className="h-9 rounded-full text-sm" />
+                <Button size="icon" className="h-9 w-9 shrink-0 rounded-full" disabled={!eu || !(resp[t.id] ?? "").trim()} onClick={() => responder(t)}><Send className="h-4 w-4" /></Button>
+              </div>
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
                 <span className={`rounded-full px-2.5 py-1 font-medium ${COR[t.de_pessoa] ?? "bg-muted"}`}>{t.de_pessoa}</span>
                 <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
