@@ -89,13 +89,16 @@ function AgendaPage() {
     return e ? `${e.identificacao_interna ?? ""} ${e.nome}`.trim() : "";
   };
 
+  // Cada pessoa vê apenas as tarefas em que está envolvida (pede ou recebe).
+  const envolvida = (t: Tarefa, p: string | null) => !p || t.de_pessoa === p || t.para_pessoa === p;
   const lista = useMemo(() => tarefas.filter((t) =>
     (vista === "concluidas" ? t.estado === "concluida" : t.estado !== "concluida") &&
+    envolvida(t, eu) &&
     (pessoa === "todos" || t.para_pessoa === pessoa || t.de_pessoa === pessoa) &&
     (!q || `${t.titulo} ${t.descricao ?? ""} ${nomeEd(t.edificio_id)}`.toLowerCase().includes(q.toLowerCase()))
-  ).sort((a, b) => Number(b.prioridade) - Number(a.prioridade) || (a.prazo ?? "9").localeCompare(b.prazo ?? "9")), [tarefas, vista, pessoa, q, eds]);
+  ).sort((a, b) => Number(b.prioridade) - Number(a.prioridade) || (a.prazo ?? "9").localeCompare(b.prazo ?? "9")), [tarefas, vista, pessoa, q, eu, eds]);
 
-  const contagem = (p: string) => tarefas.filter((t) => t.para_pessoa === p && t.estado !== "concluida").length;
+  const contagem = (p: string) => tarefas.filter((t) => t.estado !== "concluida" && envolvida(t, eu) && (t.para_pessoa === p || t.de_pessoa === p)).length;
 
   async function responder(t: Tarefa) {
     const texto = (resp[t.id] ?? "").trim();
