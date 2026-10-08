@@ -89,13 +89,16 @@ function AgendaPage() {
     return e ? `${e.identificacao_interna ?? ""} ${e.nome}`.trim() : "";
   };
 
+  // Cada pessoa vê apenas as tarefas em que está envolvida (pede ou recebe).
+  const envolvida = (t: Tarefa, p: string | null) => !p || t.de_pessoa === p || t.para_pessoa === p;
   const lista = useMemo(() => tarefas.filter((t) =>
     (vista === "concluidas" ? t.estado === "concluida" : t.estado !== "concluida") &&
+    envolvida(t, eu) &&
     (pessoa === "todos" || t.para_pessoa === pessoa || t.de_pessoa === pessoa) &&
     (!q || `${t.titulo} ${t.descricao ?? ""} ${nomeEd(t.edificio_id)}`.toLowerCase().includes(q.toLowerCase()))
-  ).sort((a, b) => Number(b.prioridade) - Number(a.prioridade) || (a.prazo ?? "9").localeCompare(b.prazo ?? "9")), [tarefas, vista, pessoa, q, eds]);
+  ).sort((a, b) => Number(b.prioridade) - Number(a.prioridade) || (a.prazo ?? "9").localeCompare(b.prazo ?? "9")), [tarefas, vista, pessoa, q, eu, eds]);
 
-  const contagem = (p: string) => tarefas.filter((t) => t.para_pessoa === p && t.estado !== "concluida").length;
+  const contagem = (p: string) => tarefas.filter((t) => t.estado !== "concluida" && envolvida(t, eu) && (t.para_pessoa === p || t.de_pessoa === p)).length;
 
   async function responder(t: Tarefa) {
     const texto = (resp[t.id] ?? "").trim();
@@ -161,15 +164,15 @@ function AgendaPage() {
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Equipa Dinâmico</p>
           <h1 className="text-3xl font-semibold tracking-tight">Agenda</h1>
-          <p className="text-sm text-muted-foreground">Pedidos entre a equipa, por prédio. Avisos no Telegram às 10:30, 15:30 e 17:00.</p>
+          <p className="text-sm text-muted-foreground">{eu ? <>Estás no espaço da <span className="font-medium text-foreground">{eu}</span> — só vês os pedidos em que estás envolvida(o).</> : "Escolhe quem és no menu para ver o teu espaço."}</p>
         </div>
-        <Button size="lg" className="rounded-full shadow-sm" onClick={() => setForm({ ...vazio })}><Plus className="mr-1 h-4 w-4" /> Nova tarefa</Button>
+        <Button size="lg" className="rounded-full shadow-sm" onClick={() => setForm({ ...vazio, de_pessoa: eu ?? vazio.de_pessoa })}><Plus className="mr-1 h-4 w-4" /> Nova tarefa</Button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <button onClick={() => setPessoa("todos")} className={`rounded-2xl border p-4 text-left transition hover:shadow-md ${pessoa === "todos" ? "border-primary bg-primary/5 ring-1 ring-primary" : "bg-card"}`}>
-          <div className="text-xs text-muted-foreground">Toda a equipa</div>
-          <div className="mt-1 text-2xl font-semibold">{tarefas.filter((t) => t.estado !== "concluida").length}</div>
+          <div className="text-xs text-muted-foreground">{eu ? `Espaço da ${eu}` : "Toda a equipa"}</div>
+          <div className="mt-1 text-2xl font-semibold">{tarefas.filter((t) => t.estado !== "concluida" && envolvida(t, eu)).length}</div>
           <div className="text-xs text-muted-foreground">por concluir</div>
         </button>
         {PESSOAS.map((p) => (
