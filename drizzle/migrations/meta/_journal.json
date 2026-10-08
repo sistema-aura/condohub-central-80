@@ -92,6 +92,13 @@
       "when": 1791306339280,
       "tag": "0012_edificios_quantidade_fracoes",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791474543533,
+      "tag": "0013_tarefas_respostas",
+      "breakpoints": true
     }
   ]
 }

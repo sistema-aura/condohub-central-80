@@ -328,6 +328,7 @@ export type Database = {
           para_pessoa: string
           prazo: string | null
           prioridade: boolean
+          respostas: Json
           titulo: string
           updated_at: string
         }
@@ -344,6 +345,7 @@ export type Database = {
           para_pessoa: string
           prazo?: string | null
           prioridade?: boolean
+          respostas?: Json
           titulo: string
           updated_at?: string
         }
@@ -360,6 +362,7 @@ export type Database = {
           para_pessoa?: string
           prazo?: string | null
           prioridade?: boolean
+          respostas?: Json
           titulo?: string
           updated_at?: string
         }
