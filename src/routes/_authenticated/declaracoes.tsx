@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Printer, Check, Undo2, Trash2, Folder, Pencil } from "lucide-react";
+import { Plus, Printer, Check, Undo2, Trash2, Folder, Pencil, StickyNote } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { descarregarDeclaracao } from "@/lib/declaracao-word";
@@ -148,6 +148,7 @@ function Page() {
                       <span className="truncate text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</span>
                       <span className="shrink-0 text-[11px] text-muted-foreground">Pedida · {fmt(d.created_at)}</span>
                     </div>
+                    {d.observacoes ? <p className="decl-note"><StickyNote className="mt-px h-3.5 w-3.5 shrink-0" /><span>{d.observacoes}</span></p> : null}
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                       <div className="flex flex-wrap gap-1.5">
                         <button type="button" className={`decl-pill${d.urgente ? " decl-pill--urgent" : ""}`} onClick={() => upd(d.id, { urgente: !d.urgente })}>
@@ -198,12 +199,13 @@ function Page() {
 }
 
 // Preços: cliente (com IVA), solicitadora (base + IVA, só reconhecidas) e parte da Dinâmico.
+type Estado = { urgente: boolean; reconhecida: boolean };
 const IVA = 1.23;
-const preco = (d: Dec) => (d.reconhecida ? (d.urgente ? 67.65 : 55.35) : d.urgente ? 30.75 : 18.45);
-const solBase = (d: Dec) => (d.reconhecida ? (d.urgente ? 30 : 25) : 0);
-const solicitadora = (d: Dec) => solBase(d) * IVA;
-const dinamico = (d: Dec) => preco(d) - solicitadora(d);
-const nono = (d: Dec) => dinamico(d) / IVA; // parte da Dinâmico sem IVA
+const preco = (d: Estado) => (d.reconhecida ? (d.urgente ? 67.65 : 55.35) : d.urgente ? 30.75 : 18.45);
+const solBase = (d: Estado) => (d.reconhecida ? (d.urgente ? 30 : 25) : 0);
+const solicitadora = (d: Estado) => solBase(d) * IVA;
+const dinamico = (d: Estado) => preco(d) - solicitadora(d);
+const nono = (d: Estado) => dinamico(d) / IVA; // parte da Dinâmico sem IVA
 const eur = (n: number) => n.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
 function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
@@ -242,11 +244,24 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
   );
 }
 
+function DecSection({ numero, titulo, children }: { numero: string; titulo: string; children: ReactNode }) {
+  return (
+    <section className="relative pl-11">
+      <span className="decl-sheet-num absolute left-0 top-0">{numero}</span>
+      <h3 className="mb-4 pt-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-meeting-sheet-primary">{titulo}</h3>
+      {children}
+    </section>
+  );
+}
+
+const decLabel = "mb-1.5 block text-xs font-medium text-muted-foreground";
+
 function DecDialog({ eds, onDone, dec }: { eds: Ed[]; onDone: () => void; dec?: Dec }) {
   const [open, setOpen] = useState(false);
   const empty = { edificio_id: "", fracao: "", proprietario: "", nif: "", observacoes: "", urgente: false, reconhecida: false, quota_mensal: "", fundo_reserva: "", quota_seguro: "Nada em vigor", quota_extraordinaria: "Nada em vigor" };
   const fromDec = (d: Dec) => ({ edificio_id: d.edificio_id, fracao: d.fracao ?? "", proprietario: d.proprietario ?? "", nif: d.nif ?? "", observacoes: d.observacoes ?? "", urgente: d.urgente, reconhecida: d.reconhecida, quota_mensal: d.quota_mensal ?? "", fundo_reserva: d.fundo_reserva ?? "", quota_seguro: d.quota_seguro ?? "", quota_extraordinaria: d.quota_extraordinaria ?? "" });
   const [f, setF] = useState(empty);
+  const set = (patch: Partial<typeof empty>) => setF((prev) => ({ ...prev, ...patch }));
   async function save() {
     if (!f.edificio_id) return toast.error("Escolhe o prédio");
     const { error } = dec
@@ -258,37 +273,64 @@ function DecDialog({ eds, onDone, dec }: { eds: Ed[]; onDone: () => void; dec?: 
     onDone();
   }
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setF(dec ? fromDec(dec) : empty); }}>
-      <DialogTrigger asChild>{dec ? <Button size="icon" variant="ghost" title="Editar"><Pencil className="h-4 w-4" /></Button> : <Button><Plus className="mr-1 h-4 w-4" />Nova declaração</Button>}</DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-        <DialogHeader><DialogTitle>{dec ? "Editar declaração" : "Nova declaração"}</DialogTitle></DialogHeader>
-        <Card><CardContent className="space-y-3 pt-4">
-          <div><Label>Prédio</Label>
-            <Select value={f.edificio_id} onValueChange={(v) => setF({ ...f, edificio_id: v })}>
+    <Sheet open={open} onOpenChange={(o) => { setOpen(o); if (o) setF(dec ? fromDec(dec) : empty); }}>
+      <SheetTrigger asChild>{dec ? <Button size="icon" variant="ghost" title="Editar"><Pencil className="h-4 w-4" /></Button> : <Button className="decl-save"><Plus className="mr-1.5 h-4 w-4" />Nova declaração</Button>}</SheetTrigger>
+      <SheetContent side="right" className="decl-sheet flex w-full flex-col gap-0 p-0 sm:max-w-lg">
+        <header className="decl-sheet-head">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-meeting-sheet-primary">Declaração de inexistência de dívida</p>
+          <SheetTitle className="mt-1 text-xl font-semibold tracking-tight">{dec ? "Editar declaração" : "Nova declaração"}</SheetTitle>
+          <SheetDescription className="mt-1 text-sm text-muted-foreground">Só o prédio é obrigatório — o resto podes completar mais tarde.</SheetDescription>
+        </header>
+        <div className="flex-1 space-y-7 overflow-y-auto px-6 py-6">
+          <DecSection numero="01" titulo="Prédio">
+            <Select value={f.edificio_id} onValueChange={(v) => set({ edificio_id: v })}>
               <SelectTrigger><SelectValue placeholder="Escolher prédio" /></SelectTrigger>
               <SelectContent>{eds.map((e) => <SelectItem key={e.id} value={e.id}>{e.identificacao_interna ? `${e.identificacao_interna} — ` : ""}{e.nome}</SelectItem>)}</SelectContent>
             </Select>
+          </DecSection>
+          <DecSection numero="02" titulo="Fração e proprietário">
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label className={decLabel}>Fração</Label><Input value={f.fracao} onChange={(e) => set({ fracao: e.target.value })} /></div>
+              <div><Label className={decLabel}>NIF</Label><Input value={f.nif} onChange={(e) => set({ nif: e.target.value })} /></div>
+            </div>
+            <div className="mt-3"><Label className={decLabel}>Proprietário</Label><Input value={f.proprietario} onChange={(e) => set({ proprietario: e.target.value })} /></div>
+          </DecSection>
+          <DecSection numero="03" titulo="Encargos mensais">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div><Label className={decLabel}>Quota mensal (€)</Label><Input inputMode="decimal" value={f.quota_mensal} onChange={(e) => set({ quota_mensal: e.target.value })} /></div>
+              <div><Label className={decLabel}>Fundo comum de reserva (€)</Label><Input inputMode="decimal" value={f.fundo_reserva} onChange={(e) => set({ fundo_reserva: e.target.value })} /></div>
+              <div><Label className={decLabel}>Quota seguro condomínio (€)</Label><Input value={f.quota_seguro} onChange={(e) => set({ quota_seguro: e.target.value })} /></div>
+              <div><Label className={decLabel}>Quota extraordinária</Label><Input value={f.quota_extraordinaria} onChange={(e) => set({ quota_extraordinaria: e.target.value })} /></div>
+            </div>
+          </DecSection>
+          <DecSection numero="04" titulo="Estado">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button type="button" className={`decl-toggle${f.urgente ? " decl-toggle--urgent" : ""}`} onClick={() => set({ urgente: !f.urgente })}>
+                <i />
+                <div className="min-w-0"><b>{f.urgente ? "Com urgência" : "Sem urgência"}</b><span>{f.urgente ? "Até 5 dias úteis" : "Até 10 dias úteis"}</span></div>
+              </button>
+              <button type="button" className={`decl-toggle${f.reconhecida ? " decl-toggle--ok" : ""}`} onClick={() => set({ reconhecida: !f.reconhecida })}>
+                <i />
+                <div className="min-w-0"><b>{f.reconhecida ? "Reconhecida" : "Sem reconhecimento"}</b><span>{f.reconhecida ? "Com reconhecimento de assinatura" : "Sem reconhecimento de assinatura"}</span></div>
+              </button>
+            </div>
+          </DecSection>
+          <DecSection numero="05" titulo="Notas">
+            <Textarea rows={3} value={f.observacoes} onChange={(e) => set({ observacoes: e.target.value })} placeholder="Ex.: o cliente pediu para enviar por email; falta o NIF..." />
+          </DecSection>
+        </div>
+        <footer className="decl-foot">
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Preço com IVA</div>
+            <div className="text-lg font-semibold text-meeting-sheet-primary">{eur(preco(f))}</div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><Label>Fração</Label><Input value={f.fracao} onChange={(e) => setF({ ...f, fracao: e.target.value })} /></div>
-            <div><Label>NIF</Label><Input value={f.nif} onChange={(e) => setF({ ...f, nif: e.target.value })} /></div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button className="decl-save" onClick={save}><Check className="mr-1.5 h-4 w-4" />Guardar</Button>
           </div>
-          <div><Label>Proprietário</Label><Input value={f.proprietario} onChange={(e) => setF({ ...f, proprietario: e.target.value })} /></div>
-           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-             <div><Label>Quota mensal (€)</Label><Input inputMode="decimal" value={f.quota_mensal} onChange={(e) => setF({ ...f, quota_mensal: e.target.value })} /></div>
-             <div><Label>Fundo comum de reserva (€)</Label><Input inputMode="decimal" value={f.fundo_reserva} onChange={(e) => setF({ ...f, fundo_reserva: e.target.value })} /></div>
-             <div><Label>Quota seguro condomínio (€)</Label><Input value={f.quota_seguro} onChange={(e) => setF({ ...f, quota_seguro: e.target.value })} /></div>
-             <div><Label>Quota extraordinária</Label><Input value={f.quota_extraordinaria} onChange={(e) => setF({ ...f, quota_extraordinaria: e.target.value })} /></div>
-           </div>
-          <div><Label>Notas</Label><Input value={f.observacoes} onChange={(e) => setF({ ...f, observacoes: e.target.value })} /></div>
-          <div className="flex gap-6">
-            <label className="flex items-center gap-2 text-sm"><Switch checked={f.urgente} onCheckedChange={(v) => setF({ ...f, urgente: v })} />Com urgência</label>
-            <label className="flex items-center gap-2 text-sm"><Switch checked={f.reconhecida} onCheckedChange={(v) => setF({ ...f, reconhecida: v })} />Reconhecida</label>
-          </div>
-          <Button className="w-full" onClick={save}>Guardar</Button>
-        </CardContent></Card>
-      </DialogContent>
-    </Dialog>
+        </footer>
+      </SheetContent>
+    </Sheet>
   );
 }
 
