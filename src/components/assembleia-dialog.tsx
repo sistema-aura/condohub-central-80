@@ -107,7 +107,7 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
     finally { setBusy(false); }
   };
   return <Sheet open onOpenChange={(open) => { if (!open && !busy) onClose(); }}>
-    <SheetContent side="right" aria-describedby={undefined} onEscapeKeyDown={(e) => { if (busy) e.preventDefault(); }} onPointerDownOutside={(e) => { if (busy) e.preventDefault(); }} className="assembly-sheet flex h-dvh w-full flex-col gap-0 rounded-none border-meeting-sheet-border bg-meeting-sheet-surface p-0 sm:max-w-[680px] [&>button]:right-6 [&>button]:top-8">
+    <SheetContent side="right" resizable resizeKey="assembleias" aria-describedby={undefined} onEscapeKeyDown={(e) => { if (busy) e.preventDefault(); }} onPointerDownOutside={(e) => { if (busy) e.preventDefault(); }} className="assembly-sheet flex h-dvh w-full flex-col gap-0 rounded-none border-meeting-sheet-border bg-meeting-sheet-surface p-0 sm:max-w-[680px] [&>button]:right-6 [&>button]:top-8">
       <SheetHeader className="shrink-0 border-b border-meeting-sheet-border px-6 py-7 pr-14 text-left sm:px-10 sm:py-8">
         <SheetTitle className="text-2xl font-bold">{a ? "Editar reunião" : "Marcar reunião"}</SheetTitle>
         <div><span className={`inline-flex border px-2 py-0.5 text-xs font-medium ${estado.classe}`}>{estado.label}</span></div>
