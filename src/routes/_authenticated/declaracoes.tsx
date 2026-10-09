@@ -112,63 +112,62 @@ function Page() {
   };
 
   function listPorFazer() {
+    const fmt = (s: string) => new Date(s).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
     const rows = (decs.data ?? []).filter((d) => !d.feita);
     const groups = new Map<string, Dec[]>();
     rows.forEach((d) => groups.set(d.edificio_id, [...(groups.get(d.edificio_id) ?? []), d]));
     const keys = [...groups.keys()].sort((a, b) => (edMap.get(a)?.identificacao_interna ?? "").localeCompare(edMap.get(b)?.identificacao_interna ?? ""));
-    if (!keys.length) return <p className="py-8 text-center text-sm text-muted-foreground">Nada aqui.</p>;
+    if (!keys.length) return (
+      <div className="decl-empty">
+        <Check className="h-5 w-5" />
+        <p>Nada por fazer — tudo pronto por agora.</p>
+      </div>
+    );
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         {keys.map((k) => {
           const e = edMap.get(k);
           const items = groups.get(k)!;
           const urg = items.filter((i) => i.urgente).length;
-          const rec = items.filter((i) => i.reconhecida).length;
-          const semRec = items.length - rec;
           return (
-            <Card key={k} className="overflow-hidden">
-              <div className="flex flex-wrap items-center gap-2 border-b bg-muted/60 px-4 py-3">
-                <Folder className="h-4 w-4 shrink-0 text-primary" />
-                <span className="min-w-0 flex-1 font-semibold">
-                  {e?.identificacao_interna ? `${e.identificacao_interna} — ` : ""}{e?.nome ?? "?"}
-                  {e?.localidade ? <span className="block text-xs font-normal text-muted-foreground">{e.morada ? `${e.morada}, ` : ""}{e.localidade}</span> : null}
-                </span>
-                <Badge variant="secondary">{items.length} {items.length === 1 ? "declaração" : "declarações"}</Badge>
-                {urg > 0 && <Badge variant="destructive">{urg} urgente{urg > 1 ? "s" : ""}</Badge>}
-                {rec > 0 && <Badge>{rec} reconhecida{rec > 1 ? "s" : ""}</Badge>}
-                {semRec > 0 && <Badge variant="outline">{semRec} sem reconhecimento</Badge>}
-                <span className="ml-auto text-sm font-semibold text-primary">{eur(items.reduce((s, d) => s + preco(d), 0))}</span>
-              </div>
-              <CardContent className="space-y-2 pt-4">
+            <article key={k} className={`decl-card${urg ? " decl-card--urgent" : ""}`}>
+              <div className={`decl-rail${urg ? " decl-rail--urgent" : ""}`} />
+              <header className="flex flex-wrap items-center gap-3 px-5 py-4">
+                <span className="decl-num">{e?.identificacao_interna ?? "—"}</span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="truncate text-[15px] font-semibold tracking-tight">{e?.nome ?? "Prédio"}</h2>
+                  {e?.localidade ? <p className="truncate text-xs text-muted-foreground">{e.morada ? `${e.morada}, ` : ""}{e.localidade}</p> : null}
+                </div>
+                <span className="decl-chip">{items.length} {items.length === 1 ? "declaração" : "declarações"}</span>
+                <span className="text-sm font-semibold text-primary">{eur(items.reduce((s, d) => s + preco(d), 0))}</span>
+              </header>
+              <div className="decl-tiles px-5 pb-5">
                 {items.map((d) => (
-                  <div key={d.id} className="flex flex-wrap items-center gap-3 rounded-lg border bg-background/60 p-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium">Fração {d.fracao || "—"}</span>
-                        <span className="text-sm">{d.proprietario || "—"}</span>
-                        <Badge variant={d.urgente ? "destructive" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { urgente: !d.urgente })}>{d.urgente ? "Com urgência" : "Sem urgência"}</Badge>
-                        <Badge variant={d.reconhecida ? "default" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}</Badge>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        NIF {d.nif || "—"} · pedida a {new Date(d.created_at).toLocaleDateString("pt-PT")}
-                        {d.quota_mensal ? ` · quota mensal ${eur(Number(d.quota_mensal))}` : ""}
-                        {d.observacoes ? ` · ${d.observacoes}` : ""}
-                      </div>
+                  <div key={d.id} className="decl-tile">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</span>
+                      <span className="shrink-0 text-[11px] text-muted-foreground">Pedida · {fmt(d.created_at)}</span>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xs text-muted-foreground">Preço (c/ IVA)</div>
-                      <div className="font-semibold">{eur(preco(d))}</div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
-                      <Button size="icon" variant="ghost" title="Descarregar declaração Word" onClick={() => { if (e) void descarregarDeclaracao(e, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" title="Marcar como feita" onClick={() => upd(d.id, { feita: true, feita_em: new Date().toISOString() })}><Check className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => del(d.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        <button type="button" className={`decl-pill${d.urgente ? " decl-pill--urgent" : ""}`} onClick={() => upd(d.id, { urgente: !d.urgente })}>
+                          <i />{d.urgente ? "Com urgência" : "Sem urgência"}
+                        </button>
+                        <button type="button" className={`decl-pill${d.reconhecida ? " decl-pill--ok" : ""}`} onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>
+                          <i />{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Descarregar declaração Word" onClick={() => { if (e) void descarregarDeclaracao(e, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Marcar como feita" onClick={() => upd(d.id, { feita: true, feita_em: new Date().toISOString() })}><Check className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Apagar" onClick={() => del(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
                     </div>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </article>
           );
         })}
       </div>
