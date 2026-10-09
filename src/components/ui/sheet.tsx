@@ -49,26 +49,157 @@ const sheetVariants = cva(
   },
 );
 
+const MIN_SHEET_WIDTH = 340;
+const SHEET_EDGE_GAP = 24;
+const SHEET_KEY_PREFIX = "sheet-width:";
+
+function clampSheetWidth(value: number) {
+  const max = Math.max(MIN_SHEET_WIDTH, window.innerWidth - SHEET_EDGE_GAP);
+  return Math.round(Math.min(Math.max(value, MIN_SHEET_WIDTH), max));
+}
+
 interface SheetContentProps
   extends
     React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
-    VariantProps<typeof sheetVariants> {}
+    VariantProps<typeof sheetVariants> {
+  /** Permite arrastar a bordo da ficha para lhe alterar a largura. */
+  resizable?: boolean;
+  /** Identificador usado para lembrar a largura escolhida. */
+  resizeKey?: string;
+}
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "right", className, children, ...props }, ref) => (
-  <SheetPortal>
-    <SheetOverlay />
-    <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background cursor-pointer transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </SheetPrimitive.Close>
-      {children}
-    </SheetPrimitive.Content>
-  </SheetPortal>
-));
+>(({ side = "right", className, children, resizable = false, resizeKey, style, ...props }, ref) => {
+  const innerRef = React.useRef<HTMLDivElement | null>(null);
+  const [width, setWidth] = React.useState<number | null>(null);
+  const [dragging, setDragging] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!resizable || !resizeKey) return;
+    try {
+      const saved = Number(window.localStorage.getItem(SHEET_KEY_PREFIX + resizeKey));
+      if (Number.isFinite(saved) && saved >= MIN_SHEET_WIDTH) setWidth(clampSheetWidth(saved));
+    } catch {
+      /* sem acesso a armazenamento local */
+    }
+  }, [resizable, resizeKey]);
+
+  React.useEffect(() => {
+    if (width === null) return;
+    const onResize = () => setWidth((w) => (w === null ? w : clampSheetWidth(w)));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [width]);
+
+  const remember = React.useCallback(
+    (value: number | null) => {
+      if (!resizeKey) return;
+      try {
+        if (value === null) window.localStorage.removeItem(SHEET_KEY_PREFIX + resizeKey);
+        else window.localStorage.setItem(SHEET_KEY_PREFIX + resizeKey, String(value));
+      } catch {
+        /* sem acesso a armazenamento local */
+      }
+    },
+    [resizeKey],
+  );
+
+  const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!resizable || event.button !== 0) return;
+    const el = innerRef.current;
+    if (!el) return;
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = el.getBoundingClientRect().width;
+    const direction = side === "left" ? 1 : -1;
+    let latest = startWidth;
+    setDragging(true);
+    document.body.style.userSelect = "none";
+    const move = (e: PointerEvent) => {
+      latest = clampSheetWidth(startWidth + direction * (e.clientX - startX));
+      setWidth(latest);
+    };
+    const stop = () => {
+      setDragging(false);
+      document.body.style.userSelect = "";
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+      remember(latest);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+  };
+
+  const nudge = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!resizable) return;
+    const step = event.shiftKey ? 80 : 24;
+    const base = width ?? innerRef.current?.getBoundingClientRect().width ?? MIN_SHEET_WIDTH;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      const next = clampSheetWidth(base + (side === "left" ? -step : step));
+      setWidth(next);
+      remember(next);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      const next = clampSheetWidth(base + (side === "left" ? step : -step));
+      setWidth(next);
+      remember(next);
+    }
+  };
+
+  const reset = () => {
+    setWidth(null);
+    remember(null);
+  };
+
+  return (
+    <SheetPortal>
+      <SheetOverlay />
+      <SheetPrimitive.Content
+        ref={(node) => {
+          innerRef.current = node;
+          if (typeof ref === "function") ref(node);
+          else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        }}
+        className={cn(sheetVariants({ side }), className)}
+        style={{
+          ...(width !== null ? { width, maxWidth: "none" } : null),
+          ...(dragging ? { transition: "none" } : null),
+          ...style,
+        }}
+        {...props}
+      >
+        <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background cursor-pointer transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </SheetPrimitive.Close>
+        {resizable && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Arrastar para ajustar a largura"
+            title="Arrasta para alargar · duplo clique para repor"
+            tabIndex={0}
+            onPointerDown={startDrag}
+            onDoubleClick={reset}
+            onKeyDown={nudge}
+            className={cn(
+              "group absolute top-0 z-20 hidden h-[100dvh] w-5 -translate-x-1/2 cursor-col-resize touch-none select-none items-center justify-center outline-none sm:flex",
+              side === "right" ? "left-0" : "right-0",
+            )}
+          >
+            <span className="h-24 w-1.5 rounded-full bg-foreground/10 transition-all duration-200 group-hover:h-40 group-hover:bg-primary/60 group-focus-visible:h-40 group-focus-visible:bg-primary/70" />
+          </div>
+        )}
+        {children}
+      </SheetPrimitive.Content>
+    </SheetPortal>
+  );
+});
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
