@@ -156,8 +156,8 @@ function Page() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-muted-foreground">{d.reconhecida ? "Solicitadora" : "Preço"}</div>
-                      <div className="font-semibold">{d.reconhecida ? eur(preco(d)) : eur(preco(d))}</div>
+                      <div className="text-xs text-muted-foreground">Preço (c/ IVA)</div>
+                      <div className="font-semibold">{eur(preco(d))}</div>
                     </div>
                     <div className="flex items-center gap-1">
                       <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
