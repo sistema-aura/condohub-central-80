@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Building2, LayoutDashboard, AlertTriangle, Users, LogOut, FileCheck, CalendarDays, Mail, ListTodo, Wrench, FileSignature } from "lucide-react";
+import { Building2, LayoutDashboard, AlertTriangle, Users, LogOut, FileCheck, CalendarDays, Mail, ListTodo, ListChecks, Wrench, FileSignature } from "lucide-react";
 
 import logoMark from "@/assets/logo-mark.png.asset.json";
 import { PESSOAS_EQUIPA, usePessoaAtual } from "@/lib/pessoa-atual";
