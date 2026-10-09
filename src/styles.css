@@ -247,11 +247,14 @@
   color: var(--color-muted-foreground);
   background: color-mix(in srgb, var(--color-background) 70%, transparent);
 }
+.decl-tiles { display: flex; flex-wrap: wrap; gap: .75rem; }
 .decl-tile {
+  flex: 1 1 22rem;
+  min-width: 0;
   border: 1px solid var(--color-border);
   border-radius: .95rem;
   background: color-mix(in srgb, var(--meeting-sheet-primary) 3%, var(--color-background));
-  padding: .85rem .95rem;
+  padding: .9rem 1rem;
   transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 .decl-tile:hover {
