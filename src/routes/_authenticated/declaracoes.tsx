@@ -275,7 +275,7 @@ function DecDialog({ eds, onDone, dec }: { eds: Ed[]; onDone: () => void; dec?: 
   return (
     <Sheet open={open} onOpenChange={(o) => { setOpen(o); if (o) setF(dec ? fromDec(dec) : empty); }}>
       <SheetTrigger asChild>{dec ? <Button size="icon" variant="ghost" title="Editar"><Pencil className="h-4 w-4" /></Button> : <Button className="decl-save"><Plus className="mr-1.5 h-4 w-4" />Nova declaração</Button>}</SheetTrigger>
-      <SheetContent side="right" className="decl-sheet flex w-full flex-col gap-0 p-0 sm:max-w-lg">
+      <SheetContent side="right" resizable resizeKey="declaracoes" className="decl-sheet flex w-full flex-col gap-0 p-0 sm:max-w-lg">
         <header className="decl-sheet-head">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-meeting-sheet-primary">Declaração de inexistência de dívida</p>
           <SheetTitle className="mt-1 text-xl font-semibold tracking-tight">{dec ? "Editar declaração" : "Nova declaração"}</SheetTitle>
