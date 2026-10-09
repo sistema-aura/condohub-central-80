@@ -183,6 +183,9 @@
   --decl-ok: #1d5a94;
   --decl-ok-soft: #eaf2fa;
   --decl-ok-line: #cfe1f0;
+  --decl-note: #8a5a12;
+  --decl-note-soft: #fff8e8;
+  --decl-note-line: #f2e2bd;
   --decl-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 6%, transparent),
     0 22px 45px -30px color-mix(in srgb, var(--meeting-sheet-primary) 55%, transparent);
 }
@@ -193,6 +196,9 @@
   --decl-ok: #9cc7f2;
   --decl-ok-soft: color-mix(in srgb, #9cc7f2 14%, transparent);
   --decl-ok-line: color-mix(in srgb, #9cc7f2 34%, transparent);
+  --decl-note: #fcd48a;
+  --decl-note-soft: color-mix(in srgb, #fcd48a 12%, transparent);
+  --decl-note-line: color-mix(in srgb, #fcd48a 32%, transparent);
   --decl-shadow: 0 1px 2px rgb(0 0 0 / 30%),
     0 22px 45px -30px color-mix(in srgb, var(--primary) 55%, transparent);
 }
@@ -306,7 +312,108 @@
   color: var(--color-muted-foreground);
   font-size: .875rem;
 }
+.decl-note {
+  display: flex;
+  align-items: flex-start;
+  gap: .45rem;
+  margin-top: .7rem;
+  border: 1px solid var(--decl-note-line);
+  border-radius: .7rem;
+  background: var(--decl-note-soft);
+  color: var(--decl-note);
+  padding: .5rem .65rem;
+  font-size: .78rem;
+  line-height: 1.35;
+}
 @media (prefers-reduced-motion: reduce) {
   .decl-card, .decl-tile, .decl-pill { transition: none !important; }
   .decl-tile:hover, .decl-pill:hover { transform: none; }
+}
+
+/* ===== Declarações: ficha lateral ===== */
+.decl-sheet {
+  font-family: "Manrope", sans-serif;
+  box-shadow: var(--meeting-sheet-shadow);
+}
+.decl-sheet h2, .decl-sheet h3, .decl-sheet-num { font-family: "Sora", sans-serif; }
+.decl-sheet-head {
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--meeting-sheet-primary) 12%, var(--color-card)) 0%,
+    var(--color-card) 100%);
+  padding: 1.5rem 1.5rem 1.2rem;
+}
+.decl-sheet input, .decl-sheet select, .decl-sheet textarea {
+  min-width: 0;
+  border-radius: .7rem;
+  border-color: color-mix(in srgb, var(--meeting-sheet-primary) 16%, var(--color-border));
+  background: color-mix(in srgb, var(--meeting-sheet-primary) 3%, var(--color-background));
+}
+.decl-sheet input:focus-visible, .decl-sheet select:focus-visible, .decl-sheet textarea:focus-visible {
+  outline-color: var(--meeting-sheet-primary);
+}
+.decl-sheet-num {
+  display: grid;
+  place-items: center;
+  height: 2rem;
+  width: 2rem;
+  border: 2px solid var(--meeting-sheet-primary);
+  border-radius: .6rem;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--meeting-sheet-primary);
+}
+.decl-toggle {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: .85rem;
+  background: var(--color-card);
+  padding: .75rem .85rem;
+  text-align: left;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.decl-toggle i {
+  width: .55rem;
+  height: .55rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+}
+.decl-toggle b { display: block; font-weight: 700; }
+.decl-toggle span { display: block; font-size: .72rem; font-weight: 500; opacity: .85; }
+.decl-toggle--urgent {
+  color: var(--decl-urgent);
+  border-color: var(--decl-urgent-line);
+  background: var(--decl-urgent-soft);
+}
+.decl-toggle--ok {
+  color: var(--decl-ok);
+  border-color: var(--decl-ok-line);
+  background: var(--decl-ok-soft);
+}
+.decl-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--meeting-sheet-primary) 4%, var(--color-card));
+  padding: 1rem 1.5rem;
+}
+.decl-save {
+  background: linear-gradient(135deg, var(--meeting-sheet-primary), var(--primary));
+  color: var(--color-primary-foreground);
+  border: none;
+  box-shadow: 0 12px 24px -14px color-mix(in srgb, var(--meeting-sheet-primary) 80%, transparent);
+}
+.decl-save:hover { filter: brightness(1.06); }
+@media (prefers-reduced-motion: reduce) {
+  .decl-sheet { animation: none !important; transition: none !important; }
 }
