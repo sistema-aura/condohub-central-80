@@ -82,6 +82,33 @@ export type Database = {
           },
         ]
       }
+      checks: {
+        Row: {
+          created_at: string
+          dia: string
+          feito: boolean
+          id: string
+          pessoa: string
+          texto: string
+        }
+        Insert: {
+          created_at?: string
+          dia?: string
+          feito?: boolean
+          id?: string
+          pessoa?: string
+          texto: string
+        }
+        Update: {
+          created_at?: string
+          dia?: string
+          feito?: boolean
+          id?: string
+          pessoa?: string
+          texto?: string
+        }
+        Relationships: []
+      }
       declaracoes: {
         Row: {
           created_at: string
