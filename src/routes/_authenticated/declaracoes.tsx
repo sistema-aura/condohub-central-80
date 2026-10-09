@@ -141,7 +141,7 @@ function Page() {
                 <span className="decl-chip">{items.length} {items.length === 1 ? "declaração" : "declarações"}</span>
                 <span className="text-sm font-semibold text-primary">{eur(items.reduce((s, d) => s + preco(d), 0))}</span>
               </header>
-              <div className="grid gap-3 px-5 pb-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="decl-tiles px-5 pb-5">
                 {items.map((d) => (
                   <div key={d.id} className="decl-tile">
                     <div className="flex items-baseline justify-between gap-2">
