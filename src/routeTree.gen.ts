@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedAssembleiasRouteImport } from './routes/_authenticated/assembleias'
+import { Route as AuthenticatedCheckRouteImport } from './routes/_authenticated/check'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDeclaracoesRouteImport } from './routes/_authenticated/declaracoes'
 import { Route as AuthenticatedEmailsRouteImport } from './routes/_authenticated/emails'
@@ -56,6 +57,11 @@ const AuthenticatedAssembleiasRoute =
     path: '/assembleias',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCheckRoute = AuthenticatedCheckRouteImport.update({
+  id: '/check',
+  path: '/check',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/agenda': typeof AuthenticatedAgendaRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/assembleias': typeof AuthenticatedAssembleiasRoute
+  '/check': typeof AuthenticatedCheckRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/declaracoes': typeof AuthenticatedDeclaracoesRoute
   '/emails': typeof AuthenticatedEmailsRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/agenda': typeof AuthenticatedAgendaRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/assembleias': typeof AuthenticatedAssembleiasRoute
+  '/check': typeof AuthenticatedCheckRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/declaracoes': typeof AuthenticatedDeclaracoesRoute
   '/emails': typeof AuthenticatedEmailsRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/assembleias': typeof AuthenticatedAssembleiasRoute
+  '/_authenticated/check': typeof AuthenticatedCheckRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/declaracoes': typeof AuthenticatedDeclaracoesRoute
   '/_authenticated/emails': typeof AuthenticatedEmailsRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/agenda'
     | '/alertas'
     | '/assembleias'
+    | '/check'
     | '/dashboard'
     | '/declaracoes'
     | '/emails'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/agenda'
     | '/alertas'
     | '/assembleias'
+    | '/check'
     | '/dashboard'
     | '/declaracoes'
     | '/emails'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/_authenticated/agenda'
     | '/_authenticated/alertas'
     | '/_authenticated/assembleias'
+    | '/_authenticated/check'
     | '/_authenticated/dashboard'
     | '/_authenticated/declaracoes'
     | '/_authenticated/emails'
@@ -268,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/assembleias'
       fullPath: '/assembleias'
       preLoaderRoute: typeof AuthenticatedAssembleiasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/check': {
+      id: '/_authenticated/check'
+      path: '/check'
+      fullPath: '/check'
+      preLoaderRoute: typeof AuthenticatedCheckRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -347,6 +366,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
   AuthenticatedAlertasRoute: typeof AuthenticatedAlertasRoute
   AuthenticatedAssembleiasRoute: typeof AuthenticatedAssembleiasRoute
+  AuthenticatedCheckRoute: typeof AuthenticatedCheckRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDeclaracoesRoute: typeof AuthenticatedDeclaracoesRoute
   AuthenticatedEmailsRoute: typeof AuthenticatedEmailsRoute
@@ -362,6 +382,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgendaRoute: AuthenticatedAgendaRoute,
   AuthenticatedAlertasRoute: AuthenticatedAlertasRoute,
   AuthenticatedAssembleiasRoute: AuthenticatedAssembleiasRoute,
+  AuthenticatedCheckRoute: AuthenticatedCheckRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDeclaracoesRoute: AuthenticatedDeclaracoesRoute,
   AuthenticatedEmailsRoute: AuthenticatedEmailsRoute,

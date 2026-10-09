@@ -32,6 +32,7 @@ export function AppSidebar() {
     { title: "Edifícios", url: "/dashboard", icon: Building2 },
     { title: "Alertas", url: "/alertas", icon: AlertTriangle },
     { title: "Agenda", url: "/agenda", icon: ListTodo },
+    { title: "Check do dia", url: "/check", icon: ListChecks },
     { title: "Vistorias", url: "/vistorias", icon: Wrench },
     { title: "Declarações", url: "/declaracoes", icon: FileCheck },
     { title: "Assembleias", url: "/assembleias", icon: CalendarDays },
