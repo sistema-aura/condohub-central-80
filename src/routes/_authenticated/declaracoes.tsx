@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Printer, Check, Undo2, Trash2, Folder, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck } from "lucide-react";
+import { Plus, Printer, Check, Undo2, Trash2, Folder, FolderOpen, X, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ function Page() {
   });
   const edMap = useMemo(() => new Map((eds.data ?? []).map((e) => [e.id, e])), [eds.data]);
   const refresh = () => qc.invalidateQueries({ queryKey: ["declaracoes"] });
+  const [pasta, setPasta] = useState<string | null>(null);
 
   async function upd(id: string, patch: Partial<Dec>) {
     const { error } = await supabase.from("declaracoes").update(patch).eq("id", id);
