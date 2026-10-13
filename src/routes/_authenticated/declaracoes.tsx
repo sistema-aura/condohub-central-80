@@ -250,7 +250,7 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
     const [y, m] = mes.split("-").map(Number);
     setMes(new Date(Date.UTC(y, m - 1 + delta, 1)).toISOString().slice(0, 7));
   };
-  const label = new Date(`${mes}-01T00:00:00`).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+  const label = (() => { const s = new Date(`${mes}-01T00:00:00`).toLocaleDateString("pt-PT", { month: "long", year: "numeric" }); return s.charAt(0).toUpperCase() + s.slice(1); })();
   const rows = decs.filter((d) => d.feita && (d.feita_em ?? d.created_at).slice(0, 7) === mes);
   const rec = rows.filter((d) => d.reconhecida);
   const sum = (fn: (d: Dec) => number) => rows.reduce((s, d) => s + fn(d), 0);
