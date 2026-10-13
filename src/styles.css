@@ -325,8 +325,8 @@
 }
 .decl-folders {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
-  gap: 1.2rem 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1.35rem 1.05rem;
 }
 .decl-folder {
   position: relative;
@@ -343,13 +343,13 @@
   content: "";
   position: absolute;
   top: 0;
-  left: .65rem;
-  width: 44%;
-  height: 15px;
-  border: 1px solid var(--decl-folder-line);
+  left: .8rem;
+  width: 48%;
+  height: 17px;
+  border: 1px solid color-mix(in srgb, var(--decl-ok) 30%, var(--decl-folder-line));
   border-bottom: 0;
-  border-radius: .5rem .75rem 0 0;
-  background: var(--decl-folder-tab);
+  border-radius: .5rem .8rem 0 0;
+  background: color-mix(in srgb, var(--decl-ok) 16%, var(--decl-folder-face));
   transform: skewX(-14deg);
   transform-origin: bottom left;
 }
@@ -395,12 +395,13 @@
   line-height: 1.15;
 }
 .decl-folder-name {
-  display: block;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-size: .82rem;
   font-weight: 600;
+  line-height: 1.25;
 }
 .decl-folder-addr {
   display: block;
@@ -409,6 +410,14 @@
   white-space: nowrap;
   font-size: .7rem;
   color: var(--color-muted-foreground);
+}
+.decl-folder-body::after {
+  content: "";
+  position: absolute;
+  inset: auto .45rem .45rem .45rem;
+  height: .3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--decl-ok) 18%, transparent);
 }
 .decl-folder-foot {
   display: flex;
