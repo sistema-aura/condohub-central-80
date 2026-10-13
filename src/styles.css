@@ -468,3 +468,140 @@
 @media (prefers-reduced-motion: reduce) {
   .decl-sheet { animation: none !important; transition: none !important; }
 }
+
+/* ===== Declarações: chips, feitas e mapa do mês ===== */
+.decl-chip--urgent {
+  color: var(--decl-urgent);
+  border-color: var(--decl-urgent-line);
+  background: var(--decl-urgent-soft);
+}
+.decl-chip--recognized {
+  color: var(--decl-recognized);
+  border-color: var(--decl-recognized-line);
+  background: var(--decl-recognized-soft);
+}
+.decl-map-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1.1rem;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--meeting-sheet-primary) 5%, var(--color-card)) 0%,
+    var(--color-card) 60%);
+  box-shadow: var(--decl-shadow);
+  padding: 1.1rem 1.3rem;
+}
+.decl-map-kicker {
+  font-family: "Sora", sans-serif;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--meeting-sheet-primary);
+}
+.decl-map-monthrow {
+  display: flex;
+  align-items: center;
+  gap: .15rem;
+  margin-top: .15rem;
+}
+.decl-map-month {
+  min-width: 10rem;
+  text-align: center;
+  font-family: "Sora", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  text-transform: capitalize;
+}
+.decl-map-step {
+  height: 2rem;
+  width: 2rem;
+  color: var(--color-muted-foreground);
+}
+.decl-map-step:hover { color: var(--meeting-sheet-primary); }
+.decl-map-input {
+  border-radius: .7rem;
+  border-color: color-mix(in srgb, var(--meeting-sheet-primary) 16%, var(--color-border));
+  background: color-mix(in srgb, var(--meeting-sheet-primary) 3%, var(--color-background));
+}
+.decl-stat {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: .9rem 1.05rem;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--meeting-sheet-primary) 4%, var(--color-card)) 0%,
+    var(--color-card) 70%);
+  box-shadow: var(--decl-shadow);
+}
+.decl-stat-label {
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+.decl-stat-value {
+  font-family: "Sora", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+}
+.decl-stat-note {
+  font-size: .68rem;
+  color: var(--color-muted-foreground);
+}
+.decl-map-table {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-card);
+  box-shadow: var(--decl-shadow);
+}
+.decl-map-table table {
+  width: 100%;
+  font-size: .82rem;
+  border-collapse: collapse;
+}
+.decl-map-table th {
+  background: color-mix(in srgb, var(--meeting-sheet-primary) 8%, var(--color-card));
+  padding: .65rem .8rem;
+  text-align: left;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+  white-space: nowrap;
+}
+.decl-map-table th.num, .decl-map-table td.num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.decl-map-table td {
+  padding: .6rem .8rem;
+  border-top: 1px solid var(--color-border);
+  vertical-align: top;
+}
+.decl-map-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--meeting-sheet-primary) 4%, transparent);
+}
+.decl-map-table .row-recognized td {
+  background: color-mix(in srgb, var(--decl-recognized) 7%, var(--color-card));
+}
+.decl-map-table .row-recognized:hover td {
+  background: color-mix(in srgb, var(--decl-recognized) 12%, var(--color-card));
+}
+.decl-map-table .decl-map-total td {
+  border-top: 2px solid color-mix(in srgb, var(--meeting-sheet-primary) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--meeting-sheet-primary) 6%, var(--color-card));
+  font-weight: 700;
+}

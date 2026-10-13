@@ -227,7 +227,7 @@ function Page() {
           <TabsTrigger className="decl-tab" value="mapa"><ChartNoAxesCombined className="h-4 w-4" />Mapa do mês</TabsTrigger>
         </TabsList>
         <TabsContent value="por">{listPorFazer()}</TabsContent>
-        <TabsContent value="feitas">{list(true)}</TabsContent>
+        <TabsContent value="feitas">{listFeitas()}</TabsContent>
         <TabsContent value="mapa"><Mapa decs={decs.data ?? []} edMap={edMap} /></TabsContent>
       </Tabs>
     </div>
@@ -246,33 +246,79 @@ const eur = (n: number) => n.toLocaleString("pt-PT", { style: "currency", curren
 
 function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
   const [mes, setMes] = useState(new Date().toISOString().slice(0, 7));
+  const shift = (delta: number) => {
+    const [y, m] = mes.split("-").map(Number);
+    setMes(new Date(Date.UTC(y, m - 1 + delta, 1)).toISOString().slice(0, 7));
+  };
+  const label = new Date(`${mes}-01T00:00:00`).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
   const rows = decs.filter((d) => d.feita && (d.feita_em ?? d.created_at).slice(0, 7) === mes);
   const rec = rows.filter((d) => d.reconhecida);
+  const sum = (fn: (d: Dec) => number) => rows.reduce((s, d) => s + fn(d), 0);
+  const stats: { label: string; value: string; note?: string }[] = [
+    { label: "Feitas", value: String(rows.length), note: rec.length ? `${rec.length} com reconhecimento` : "todas sem reconhecimento" },
+    { label: "Faturado (c/ IVA)", value: eur(sum(preco)) },
+    { label: `A pagar à solicitadora (${rec.length})`, value: eur(sum(solicitadora)) },
+    { label: "Nono (sem IVA)", value: eur(sum(nono)) },
+    { label: "IVA (fica p/ Dinâmico)", value: eur(sum((d) => dinamico(d) - nono(d))) },
+  ];
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2"><Label>Mês</Label><Input type="month" className="w-44" value={mes} onChange={(e) => setMes(e.target.value)} /></div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Feitas</div><div className="text-2xl font-semibold">{rows.length}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Faturado (c/ IVA)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + preco(d), 0))}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">A pagar à solicitadora ({rec.length})</div><div className="text-2xl font-semibold text-primary">{eur(rec.reduce((s, d) => s + solicitadora(d), 0))}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Nono (sem IVA)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + nono(d), 0))}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">IVA (fica p/ Dinâmico)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + dinamico(d) - nono(d), 0))}</div></CardContent></Card>
+    <div className="space-y-5">
+      <div className="decl-map-head">
+        <div>
+          <p className="decl-map-kicker">Mapa do mês</p>
+          <div className="decl-map-monthrow">
+            <Button size="icon" variant="ghost" className="decl-map-step" aria-label="Mês anterior" onClick={() => shift(-1)}><ChevronLeft className="h-4 w-4" /></Button>
+            <span className="decl-map-month">{label}</span>
+            <Button size="icon" variant="ghost" className="decl-map-step" aria-label="Mês seguinte" onClick={() => shift(1)}><ChevronRight className="h-4 w-4" /></Button>
+          </div>
+        </div>
+        <Input type="month" className="decl-map-input w-40" value={mes} onChange={(e) => { if (e.target.value) setMes(e.target.value); }} aria-label="Escolher mês" />
       </div>
-      {rows.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma declaração feita neste mês.</p> : (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted text-left"><tr><th className="p-2">Data</th><th className="p-2">Prédio</th><th className="p-2">Fração</th><th className="p-2">Tipo</th><th className="p-2 text-right">Preço</th><th className="p-2 text-right">Solicitadora (c/ IVA)</th><th className="p-2 text-right">Nono (sem IVA)</th><th className="p-2 text-right">IVA</th></tr></thead>
-            <tbody>{rows.map((d) => { const e = edMap.get(d.edificio_id); return (
-              <tr key={d.id} className="border-t">
-                <td className="p-2">{new Date(d.feita_em ?? d.created_at).toLocaleDateString("pt-PT")}</td>
-                <td className="p-2">{e?.identificacao_interna ? `${e.identificacao_interna} — ` : ""}{e?.nome}</td>
-                <td className="p-2">{d.fracao || "—"}</td>
-                <td className="p-2">{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"} · {d.urgente ? "Urgente" : "Normal"}</td>
-                <td className="p-2 text-right">{eur(preco(d))}</td>
-                <td className="p-2 text-right">{d.reconhecida ? eur(solicitadora(d)) : "—"}</td>
-                <td className="p-2 text-right">{eur(dinamico(d) / IVA)}</td>
-                <td className="p-2 text-right">{eur(dinamico(d) - dinamico(d) / IVA)}</td>
-              </tr>); })}</tbody>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {stats.map((s) => (
+          <div key={s.label} className="decl-stat">
+            <span className="decl-stat-label">{s.label}</span>
+            <span className="decl-stat-value">{s.value}</span>
+            {s.note ? <span className="decl-stat-note">{s.note}</span> : null}
+          </div>
+        ))}
+      </div>
+      {rows.length === 0 ? (
+        <div className="decl-empty">
+          <CalendarCheck className="h-5 w-5" />
+          <p>Nenhuma declaração feita em {label}.</p>
+        </div>
+      ) : (
+        <div className="decl-map-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th><th>Prédio</th><th>Fração</th><th>Tipo</th>
+                <th className="num">Preço</th><th className="num">Solicitadora (c/ IVA)</th><th className="num">Nono (sem IVA)</th><th className="num">IVA</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((d) => { const e = edMap.get(d.edificio_id); return (
+                <tr key={d.id} className={d.reconhecida ? "row-recognized" : undefined}>
+                  <td className="whitespace-nowrap">{new Date(d.feita_em ?? d.created_at).toLocaleDateString("pt-PT")}</td>
+                  <td className="font-medium">{e?.identificacao_interna ? `${e.identificacao_interna} — ` : ""}{e?.nome}</td>
+                  <td>{d.fracao || "—"}</td>
+                  <td>{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"} · {d.urgente ? "Urgente" : "Normal"}</td>
+                  <td className="num">{eur(preco(d))}</td>
+                  <td className="num">{d.reconhecida ? eur(solicitadora(d)) : "—"}</td>
+                  <td className="num">{eur(nono(d))}</td>
+                  <td className="num">{eur(dinamico(d) - nono(d))}</td>
+                </tr>); })}
+            </tbody>
+            <tfoot>
+              <tr className="decl-map-total">
+                <td colSpan={4}>Total de {label}</td>
+                <td className="num">{eur(sum(preco))}</td>
+                <td className="num">{eur(sum(solicitadora))}</td>
+                <td className="num">{eur(sum(nono))}</td>
+                <td className="num">{eur(sum((d) => dinamico(d) - nono(d)))}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       )}
