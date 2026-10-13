@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Printer, Check, Undo2, Trash2, Folder, Pencil, StickyNote } from "lucide-react";
+import { Plus, Printer, Check, Undo2, Trash2, Folder, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,7 +32,9 @@ export const Route = createFileRoute("/_authenticated/declaracoes")({
 });
 
 type Ed = { id: string; nome: string; identificacao_interna: string | null; morada: string | null; codigo_postal: string | null; localidade: string | null; observacoes: string | null };
-type Dec = { id: string; edificio_id: string; fracao: string | null; proprietario: string | null; nif: string | null; urgente: boolean; reconhecida: boolean; feita: boolean; feita_em: string | null; observacoes: string | null; created_at: string; quota_mensal: string | null; fundo_reserva: string | null; quota_seguro: string | null; quota_extraordinaria: string | null };
+type ReconhecimentoEstado = "por_enviar" | "na_solicitadora" | "no_escritorio";
+const reconhecimentoLabels: Record<ReconhecimentoEstado, string> = { por_enviar: "Por enviar à solicitadora", na_solicitadora: "Na solicitadora", no_escritorio: "Já no escritório" };
+type Dec = { id: string; edificio_id: string; fracao: string | null; proprietario: string | null; nif: string | null; urgente: boolean; reconhecida: boolean; reconhecimento_estado: ReconhecimentoEstado; feita: boolean; feita_em: string | null; observacoes: string | null; created_at: string; quota_mensal: string | null; fundo_reserva: string | null; quota_seguro: string | null; quota_extraordinaria: string | null };
 
 function Page() {
   const qc = useQueryClient();
@@ -76,7 +78,7 @@ function Page() {
       <Accordion type="multiple" className="space-y-2">
         {keys.map((k) => {
           const e = edMap.get(k);
-          const items = groups.get(k)!;
+          const items = groups.get(k) ?? [];
           const urg = items.filter((i) => i.urgente && !i.feita).length;
           return (
             <AccordionItem key={k} value={k} className="rounded-lg border bg-card px-4">
@@ -97,6 +99,7 @@ function Page() {
                     </div>
                     <Badge variant={d.urgente ? "destructive" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { urgente: !d.urgente })}>{d.urgente ? "Com urgência" : "Sem urgência"}</Badge>
                     <Badge variant={d.reconhecida ? "default" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}</Badge>
+                    {d.reconhecida && <span className="decl-rec-status">{reconhecimentoLabels[d.reconhecimento_estado]}</span>}
                     <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
                      <Button size="icon" variant="ghost" title="Descarregar declaração Word" onClick={() => { if (e) void descarregarDeclaracao(e, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-4 w-4" /></Button>
                     <Button size="icon" variant="ghost" title={d.feita ? "Voltar a por fazer" : "Marcar como feita"} onClick={() => upd(d.id, { feita: !d.feita, feita_em: d.feita ? null : new Date().toISOString() })}>{d.feita ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}</Button>
@@ -127,7 +130,7 @@ function Page() {
       <div className="space-y-5">
         {keys.map((k) => {
           const e = edMap.get(k);
-          const items = groups.get(k)!;
+          const items = groups.get(k) ?? [];
           const urg = items.filter((i) => i.urgente).length;
           return (
             <article key={k} className={`decl-card${urg ? " decl-card--urgent" : ""}`}>
@@ -143,7 +146,7 @@ function Page() {
               </header>
               <div className="decl-tiles px-5 pb-5">
                 {items.map((d) => (
-                  <div key={d.id} className="decl-tile">
+                  <div key={d.id} className={`decl-tile${d.reconhecida ? " decl-tile--recognized" : ""}`}>
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="truncate text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</span>
                       <span className="shrink-0 text-[11px] text-muted-foreground">Pedida · {fmt(d.created_at)}</span>
@@ -151,12 +154,12 @@ function Page() {
                     {d.observacoes ? <p className="decl-note"><StickyNote className="mt-px h-3.5 w-3.5 shrink-0" /><span>{d.observacoes}</span></p> : null}
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                       <div className="flex flex-wrap gap-1.5">
-                        <button type="button" className={`decl-pill${d.urgente ? " decl-pill--urgent" : ""}`} onClick={() => upd(d.id, { urgente: !d.urgente })}>
+                        <Button variant="ghost" aria-pressed={d.urgente} className={`decl-pill${d.urgente ? " decl-pill--urgent" : ""}`} onClick={() => upd(d.id, { urgente: !d.urgente })}>
                           <i />{d.urgente ? "Com urgência" : "Sem urgência"}
-                        </button>
-                        <button type="button" className={`decl-pill${d.reconhecida ? " decl-pill--ok" : ""}`} onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>
+                        </Button>
+                        <Button variant="ghost" aria-pressed={d.reconhecida} className={`decl-pill${d.reconhecida ? " decl-pill--recognized" : ""}`} onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>
                           <i />{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}
-                        </button>
+                        </Button>
                       </div>
                       <div className="flex items-center gap-0.5">
                         <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
@@ -165,6 +168,13 @@ function Page() {
                         <Button size="icon" variant="ghost" className="h-7 w-7" title="Apagar" onClick={() => del(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                       </div>
                     </div>
+                    {d.reconhecida && (
+                      <div className="decl-rec-process">
+                        <span className="decl-rec-status"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{reconhecimentoLabels[d.reconhecimento_estado]}</span>
+                        {d.reconhecimento_estado === "por_enviar" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "na_solicitadora" })}><Send className="h-3.5 w-3.5" />Marcar envio à solicitadora</Button>}
+                        {d.reconhecimento_estado === "na_solicitadora" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "no_escritorio" })}><Building2 className="h-3.5 w-3.5" />Já está no escritório</Button>}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -185,10 +195,10 @@ function Page() {
         <DecDialog eds={eds.data ?? []} onDone={refresh} />
       </div>
       <Tabs defaultValue="por">
-        <TabsList>
-          <TabsTrigger value="por">Por fazer ({nPor})</TabsTrigger>
-          <TabsTrigger value="feitas">Feitas ({nFeitas})</TabsTrigger>
-          <TabsTrigger value="mapa">Mapa do mês</TabsTrigger>
+        <TabsList className="decl-tabs">
+          <TabsTrigger className="decl-tab" value="por"><Clock3 className="h-4 w-4" />Por fazer <span className="decl-tab-count">{nPor}</span></TabsTrigger>
+          <TabsTrigger className="decl-tab" value="feitas"><Check className="h-4 w-4" />Feitas <span className="decl-tab-count">{nFeitas}</span></TabsTrigger>
+          <TabsTrigger className="decl-tab" value="mapa"><ChartNoAxesCombined className="h-4 w-4" />Mapa do mês</TabsTrigger>
         </TabsList>
         <TabsContent value="por">{listPorFazer()}</TabsContent>
         <TabsContent value="feitas">{list(true)}</TabsContent>
@@ -258,8 +268,8 @@ const decLabel = "mb-1.5 block text-xs font-medium text-muted-foreground";
 
 function DecDialog({ eds, onDone, dec }: { eds: Ed[]; onDone: () => void; dec?: Dec }) {
   const [open, setOpen] = useState(false);
-  const empty = { edificio_id: "", fracao: "", proprietario: "", nif: "", observacoes: "", urgente: false, reconhecida: false, quota_mensal: "", fundo_reserva: "", quota_seguro: "Nada em vigor", quota_extraordinaria: "Nada em vigor" };
-  const fromDec = (d: Dec) => ({ edificio_id: d.edificio_id, fracao: d.fracao ?? "", proprietario: d.proprietario ?? "", nif: d.nif ?? "", observacoes: d.observacoes ?? "", urgente: d.urgente, reconhecida: d.reconhecida, quota_mensal: d.quota_mensal ?? "", fundo_reserva: d.fundo_reserva ?? "", quota_seguro: d.quota_seguro ?? "", quota_extraordinaria: d.quota_extraordinaria ?? "" });
+  const empty = { edificio_id: "", fracao: "", proprietario: "", nif: "", observacoes: "", urgente: false, reconhecida: false, reconhecimento_estado: "por_enviar" as ReconhecimentoEstado, quota_mensal: "", fundo_reserva: "", quota_seguro: "Nada em vigor", quota_extraordinaria: "Nada em vigor" };
+  const fromDec = (d: Dec) => ({ edificio_id: d.edificio_id, fracao: d.fracao ?? "", proprietario: d.proprietario ?? "", nif: d.nif ?? "", observacoes: d.observacoes ?? "", urgente: d.urgente, reconhecida: d.reconhecida, reconhecimento_estado: d.reconhecimento_estado, quota_mensal: d.quota_mensal ?? "", fundo_reserva: d.fundo_reserva ?? "", quota_seguro: d.quota_seguro ?? "", quota_extraordinaria: d.quota_extraordinaria ?? "" });
   const [f, setF] = useState(empty);
   const set = (patch: Partial<typeof empty>) => setF((prev) => ({ ...prev, ...patch }));
   async function save() {
@@ -305,15 +315,16 @@ function DecDialog({ eds, onDone, dec }: { eds: Ed[]; onDone: () => void; dec?: 
           </DecSection>
           <DecSection numero="04" titulo="Estado">
             <div className="grid gap-3 sm:grid-cols-2">
-              <button type="button" className={`decl-toggle${f.urgente ? " decl-toggle--urgent" : ""}`} onClick={() => set({ urgente: !f.urgente })}>
+              <Button variant="ghost" aria-pressed={f.urgente} className={`decl-toggle h-auto whitespace-normal${f.urgente ? " decl-toggle--urgent" : ""}`} onClick={() => set({ urgente: !f.urgente })}>
                 <i />
                 <div className="min-w-0"><b>{f.urgente ? "Com urgência" : "Sem urgência"}</b><span>{f.urgente ? "Até 5 dias úteis" : "Até 10 dias úteis"}</span></div>
-              </button>
-              <button type="button" className={`decl-toggle${f.reconhecida ? " decl-toggle--ok" : ""}`} onClick={() => set({ reconhecida: !f.reconhecida })}>
+              </Button>
+              <Button variant="ghost" aria-pressed={f.reconhecida} className={`decl-toggle h-auto whitespace-normal${f.reconhecida ? " decl-toggle--recognized" : ""}`} onClick={() => set({ reconhecida: !f.reconhecida })}>
                 <i />
                 <div className="min-w-0"><b>{f.reconhecida ? "Reconhecida" : "Sem reconhecimento"}</b><span>{f.reconhecida ? "Com reconhecimento de assinatura" : "Sem reconhecimento de assinatura"}</span></div>
-              </button>
+              </Button>
             </div>
+            {f.reconhecida && <div className="mt-4"><Label className={decLabel}>Reconhecimento de assinatura</Label><Select value={f.reconhecimento_estado} onValueChange={(v) => { if (v === "por_enviar" || v === "na_solicitadora" || v === "no_escritorio") set({ reconhecimento_estado: v }); }}><SelectTrigger aria-label="Estado do reconhecimento"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(reconhecimentoLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>}
           </DecSection>
           <DecSection numero="05" titulo="Notas">
             <Textarea rows={3} value={f.observacoes} onChange={(e) => set({ observacoes: e.target.value })} placeholder="Ex.: o cliente pediu para enviar por email; falta o NIF..." />
