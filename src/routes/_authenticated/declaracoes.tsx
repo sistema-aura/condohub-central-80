@@ -78,7 +78,6 @@ function Page() {
         <p>Ainda não há declarações feitas — quando marcares «Feita», aparecem aqui.</p>
       </div>
     );
-    const total = (arr: Dec[]) => arr.reduce((s, d) => s + preco(d), 0);
     const aberta = pasta && keys.includes(pasta) ? pasta : null;
     const eAb = aberta ? edMap.get(aberta) : undefined;
     const itAb = aberta ? (groups.get(aberta) ?? []) : [];
@@ -88,8 +87,6 @@ function Page() {
           <span>{keys.length} {keys.length === 1 ? "prédio" : "prédios"}</span>
           <span aria-hidden="true">·</span>
           <span>{rows.length} {rows.length === 1 ? "declaração" : "declarações"} arquivadas</span>
-          <span aria-hidden="true">·</span>
-          <span className="font-semibold text-primary">{eur(total(rows))}</span>
         </div>
         <div className="decl-folders">
           {keys.map((k) => {
@@ -108,11 +105,12 @@ function Page() {
                   <span className="decl-folder-num">{e?.identificacao_interna ?? "—"}</span>
                   <span className="decl-folder-name">{e?.nome ?? "Prédio"}</span>
                   {e?.localidade ? <span className="decl-folder-addr">{e.morada ? `${e.morada}, ` : ""}{e.localidade}</span> : null}
-                  <span className="decl-folder-foot">
-                    <span className="decl-folder-total">{eur(total(items))}</span>
-                    {recN > 0 ? <span className="decl-folder-tag decl-folder-tag--rec">{recN} rec.</span> : null}
-                    {urgN > 0 ? <span className="decl-folder-tag decl-folder-tag--urg">{urgN} urg.</span> : null}
-                  </span>
+                  {(recN > 0 || urgN > 0) ? (
+                    <span className="decl-folder-foot">
+                      {recN > 0 ? <span className="decl-folder-tag decl-folder-tag--rec">{recN} rec.</span> : null}
+                      {urgN > 0 ? <span className="decl-folder-tag decl-folder-tag--urg">{urgN} urg.</span> : null}
+                    </span>
+                  ) : null}
                 </span>
               </button>
             );
@@ -124,17 +122,14 @@ function Page() {
               <span className="decl-num">{eAb?.identificacao_interna ?? "—"}</span>
               <div className="min-w-0 flex-1">
                 <h2 className="truncate text-[15px] font-semibold tracking-tight">{eAb?.nome ?? "Prédio"}</h2>
-                <p className="truncate text-xs text-muted-foreground">{itAb.length} {itAb.length === 1 ? "declaração feita" : "declarações feitas"} · {eur(total(itAb))}</p>
+                <p className="truncate text-xs text-muted-foreground">{itAb.length} {itAb.length === 1 ? "declaração feita" : "declarações feitas"}</p>
               </div>
               <Button size="sm" variant="ghost" className="decl-folder-close" onClick={() => setPasta(null)}><X className="h-3.5 w-3.5" />Fechar pasta</Button>
             </header>
             <div className="decl-tiles">
               {itAb.map((d) => (
                 <div key={d.id} className={`decl-tile${d.reconhecida ? " decl-tile--recognized" : ""}`}>
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="truncate text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</span>
-                    <span className="shrink-0 text-xs font-semibold text-primary">{eur(preco(d))}</span>
-                  </div>
+                  <div className="text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</div>
                   <div className="mt-0.5 truncate text-[11px] text-muted-foreground">Feita em {fmt(d.feita_em ?? d.created_at)} · {d.proprietario || "—"}{d.nif ? ` · NIF ${d.nif}` : ""}</div>
                   {d.observacoes ? <p className="decl-note"><StickyNote className="mt-px h-3.5 w-3.5 shrink-0" /><span>{d.observacoes}</span></p> : null}
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
