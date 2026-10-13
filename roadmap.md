@@ -8,7 +8,7 @@
 - [x] Verificar abertura, edição, gravação e reabertura da ficha.
 
 ## Declarações
-- [ ] Distinguir reconhecidas por cor e melhorar os separadores.
-- [ ] Guardar e mostrar acompanhamento da solicitadora, só nas reconhecidas.
-- [ ] Usar código do prédio e fração no nome Word.
-- [ ] Verificar gravação, reabertura e transferência.
+- [x] Distinguir reconhecidas por cor e melhorar os separadores.
+- [x] Guardar e mostrar acompanhamento da solicitadora, só nas reconhecidas.
+- [x] Usar código do prédio e fração no nome Word.
+- [x] Verificar gravação, reabertura e transferência.
