@@ -428,7 +428,6 @@
   padding-top: .5rem;
   border-top: 1px dashed var(--decl-folder-line);
 }
-.decl-folder-total { font-size: .8rem; font-weight: 700; color: var(--decl-ok); }
 .decl-folder-tag {
   border-radius: 999px;
   padding: .1rem .45rem;
