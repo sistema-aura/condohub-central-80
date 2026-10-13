@@ -34,7 +34,8 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
   const [file, setFile] = useState<File | null>(null);
   const [removePdf, setRemovePdf] = useState(false);
   const [busy, setBusy] = useState(false);
-  const estado = estadoAssembleia({ ...form, ata_fracoes: fracoes });
+  const [cancel, setCancel] = useState({ motivo: "", dia: "", hora: "20:00" });
+  const estado = estadoAssembleia({ ...form, ata_fracoes: fracoes, cancelada: a?.cancelada });
   const enviados = fracoes.filter((f) => f.email || f.carta).length;
   const mudarFracao = (i: number, patch: Partial<FracaoAta>) => setFracoes((prev) => prev.map((f, j) => j === i ? { ...f, ...patch } : f));
   const escolherEdificio = (id: string) => {
@@ -106,6 +107,27 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
     } catch { toast.error("Não foi possível apagar a assembleia."); }
     finally { setBusy(false); }
   };
+  const cancelar = async () => {
+    if (!a) return;
+    if (!a.cancelada && !cancel.motivo.trim()) return toast.error("Indica o motivo do cancelamento.");
+    if (a.cancelada && !cancel.dia) return toast.error("Escolhe a nova data.");
+    const nova = cancel.dia ? new Date(`${cancel.dia}T${cancel.hora || "20:00"}`) : null;
+    if (nova && Number.isNaN(nova.getTime())) return toast.error("Data inválida.");
+    setBusy(true);
+    try {
+      if (!a.cancelada) {
+        const { error } = await supabase.from("assembleias").update({ cancelada: true, cancelamento_motivo: cancel.motivo.trim() }).eq("id", a.id);
+        if (error) throw error;
+      }
+      if (nova) {
+        const { error } = await supabase.from("assembleias").insert({ edificio_id: a.edificio_id, data_hora: nova.toISOString(), local: a.local,
+          observacoes: [a.observacoes, `Remarcada (cancelada a ${new Date(a.data_hora).toLocaleDateString("pt-PT")}: ${a.cancelamento_motivo || cancel.motivo.trim()})`].filter(Boolean).join("\n") });
+        if (error) throw error;
+      }
+      await onSaved(); onClose(); toast.success(nova ? "Reunião remarcada." : "Reunião cancelada.");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível cancelar."); }
+    finally { setBusy(false); }
+  };
   return <Sheet open onOpenChange={(open) => { if (!open && !busy) onClose(); }}>
     <SheetContent side="right" resizable resizeKey="assembleias" aria-describedby={undefined} onEscapeKeyDown={(e) => { if (busy) e.preventDefault(); }} onPointerDownOutside={(e) => { if (busy) e.preventDefault(); }} className="assembly-sheet flex h-dvh w-full flex-col gap-0 rounded-none border-meeting-sheet-border bg-meeting-sheet-surface p-0 sm:max-w-[680px] [&>button]:right-6 [&>button]:top-8">
       <SheetHeader className="shrink-0 border-b border-meeting-sheet-border px-6 py-7 pr-14 text-left sm:px-10 sm:py-8">
@@ -140,7 +162,19 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
         <FichaSection numero="04" titulo="Convocatória">
          <div className="flex items-center justify-between gap-3 border border-meeting-sheet-border bg-meeting-sheet-background p-4 sm:p-6"><Label htmlFor="ass-convocatoria" className="flex gap-2 items-center leading-relaxed"><Send className="size-4 shrink-0 text-meeting-sheet-primary" />Convocatória enviada</Label><Switch id="ass-convocatoria" disabled={busy} checked={form.convocatoria_enviada} onCheckedChange={(v) => setForm({ ...form, convocatoria_enviada: v })} /></div>
         </FichaSection>
-        {form.convocatoria_enviada && <>
+        {a && (a.convocatoria_enviada || a.cancelada) && <>
+        <div className="h-px bg-meeting-sheet-border" />
+        <FichaSection numero="!" titulo={a.cancelada ? "Reunião cancelada" : "Cancelar reunião"}>
+         <div className="space-y-4 border border-destructive/30 bg-destructive/5 p-4 sm:p-6">
+          {a.cancelada ? <div className="text-sm"><b>Motivo:</b> {a.cancelamento_motivo || "—"}</div>
+           : <div className="space-y-2"><Label htmlFor="cancel-motivo">Motivo do cancelamento *</Label><Textarea id="cancel-motivo" rows={2} value={cancel.motivo} onChange={(e) => setCancel({ ...cancel, motivo: e.target.value })} /></div>}
+          <div className="text-sm font-medium">Remarcar para <span className="font-normal text-muted-foreground">(opcional — cria nova reunião)</span></div>
+          <div className="grid grid-cols-2 gap-4"><Input type="date" aria-label="Nova data" value={cancel.dia} onChange={(e) => setCancel({ ...cancel, dia: e.target.value })} /><Input type="time" aria-label="Nova hora" value={cancel.hora} onChange={(e) => setCancel({ ...cancel, hora: e.target.value })} /></div>
+          <Button variant="destructive" className="rounded-none" disabled={busy} onClick={cancelar}>{a.cancelada ? "Remarcar" : cancel.dia ? "Cancelar e remarcar" : "Cancelar reunião"}</Button>
+         </div>
+        </FichaSection>
+        </>}
+        {form.convocatoria_enviada && !a?.cancelada && <>
         <div className="h-px bg-meeting-sheet-border" />
         <FichaSection numero="05" titulo="Ata e documentação">
          <div className="space-y-6">

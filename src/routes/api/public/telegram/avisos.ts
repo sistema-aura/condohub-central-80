@@ -120,7 +120,8 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
         const { data: ass, error: assErr } = await supabaseAdmin
           .from("assembleias")
           .select("id,data_hora,convocatoria_enviada,avisada_convocatoria,avisada_reuniao,edificio_id")
-          .gt("data_hora", agora);
+          .gt("data_hora", agora)
+          .eq("cancelada", false);
         if (assErr) return Response.json({ error: assErr.message }, { status: 500 });
 
         const { data: eds } = await supabaseAdmin

@@ -1,0 +1,1 @@
+ALTER TABLE public.assembleias ADD COLUMN IF NOT EXISTS cancelada boolean NOT NULL DEFAULT false, ADD COLUMN IF NOT EXISTS cancelamento_motivo text;
