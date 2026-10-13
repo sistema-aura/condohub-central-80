@@ -2,19 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Printer, Check, Undo2, Trash2, Folder, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck } from "lucide-react";
+import { Plus, Printer, Check, Undo2, Trash2, Folder, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { descarregarDeclaracao } from "@/lib/declaracao-word";
 
 export const Route = createFileRoute("/_authenticated/declaracoes")({
@@ -68,51 +65,80 @@ function Page() {
     refresh();
   }
 
-  const list = (feita: boolean) => {
-    const rows = (decs.data ?? []).filter((d) => d.feita === feita);
+  function listFeitas() {
+    const fmt = (s: string) => new Date(s).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const rows = (decs.data ?? []).filter((d) => d.feita);
     const groups = new Map<string, Dec[]>();
     rows.forEach((d) => groups.set(d.edificio_id, [...(groups.get(d.edificio_id) ?? []), d]));
     const keys = [...groups.keys()].sort((a, b) => (edMap.get(a)?.identificacao_interna ?? "").localeCompare(edMap.get(b)?.identificacao_interna ?? ""));
-    if (!keys.length) return <p className="py-8 text-center text-sm text-muted-foreground">Nada aqui.</p>;
+    if (!keys.length) return (
+      <div className="decl-empty">
+        <Folder className="h-5 w-5" />
+        <p>Ainda não há declarações feitas — quando marcares «Feita», aparecem aqui.</p>
+      </div>
+    );
     return (
-      <Accordion type="multiple" className="space-y-2">
+      <div className="space-y-5">
         {keys.map((k) => {
           const e = edMap.get(k);
           const items = groups.get(k) ?? [];
-          const urg = items.filter((i) => i.urgente && !i.feita).length;
+          const urg = items.filter((i) => i.urgente).length;
+          const recN = items.filter((i) => i.reconhecida).length;
           return (
-            <AccordionItem key={k} value={k} className="rounded-lg border bg-card px-4">
-              <AccordionTrigger>
-                <span className="flex items-center gap-2 text-left">
-                  <Folder className="h-4 w-4 text-primary" />
-                  {e?.identificacao_interna ? `${e.identificacao_interna} — ` : ""}{e?.nome ?? "?"}
-                  <Badge variant="secondary">{items.length}</Badge>
-                  {urg > 0 && <Badge variant="destructive">{urg} urgente</Badge>}
-                </span>
-              </AccordionTrigger>
-              <AccordionContent className="space-y-2">
+            <article key={k} className="decl-card">
+              <div className="decl-rail" />
+              <header className="flex flex-wrap items-center gap-3 px-5 py-4">
+                <span className="decl-num">{e?.identificacao_interna ?? "—"}</span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="truncate text-[15px] font-semibold tracking-tight">{e?.nome ?? "Prédio"}</h2>
+                  {e?.localidade ? <p className="truncate text-xs text-muted-foreground">{e.morada ? `${e.morada}, ` : ""}{e.localidade}</p> : null}
+                </div>
+                <span className="decl-chip">{items.length} {items.length === 1 ? "declaração" : "declarações"}</span>
+                {urg > 0 && <span className="decl-chip decl-chip--urgent">{urg} urgente{urg === 1 ? "" : "s"}</span>}
+                {recN > 0 && <span className="decl-chip decl-chip--recognized">{recN} reconhecida{recN === 1 ? "" : "s"}</span>}
+                <span className="text-sm font-semibold text-primary">{eur(items.reduce((s, d) => s + preco(d), 0))}</span>
+              </header>
+              <div className="decl-tiles px-5 pb-5">
                 {items.map((d) => (
-                  <div key={d.id} className="flex flex-wrap items-center gap-2 rounded-md border p-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium">Fração {d.fracao || "—"} · {d.proprietario || "—"}</div>
-                      <div className="text-xs text-muted-foreground">NIF {d.nif || "—"} · {new Date(d.created_at).toLocaleDateString("pt-PT")}{d.observacoes ? ` · ${d.observacoes}` : ""}</div>
+                  <div key={d.id} className={`decl-tile${d.reconhecida ? " decl-tile--recognized" : ""}`}>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</span>
+                      <span className="shrink-0 text-xs font-semibold text-primary">{eur(preco(d))}</span>
                     </div>
-                    <Badge variant={d.urgente ? "destructive" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { urgente: !d.urgente })}>{d.urgente ? "Com urgência" : "Sem urgência"}</Badge>
-                    <Badge variant={d.reconhecida ? "default" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}</Badge>
-                    {d.reconhecida && <span className="decl-rec-status">{reconhecimentoLabels[d.reconhecimento_estado]}</span>}
-                    <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
-                     <Button size="icon" variant="ghost" title="Descarregar declaração Word" onClick={() => { if (e) void descarregarDeclaracao(e, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" title={d.feita ? "Voltar a por fazer" : "Marcar como feita"} onClick={() => upd(d.id, { feita: !d.feita, feita_em: d.feita ? null : new Date().toISOString() })}>{d.feita ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}</Button>
-                    <Button size="icon" variant="ghost" onClick={() => del(d.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <div className="mt-0.5 truncate text-[11px] text-muted-foreground">Feita em {fmt(d.feita_em ?? d.created_at)} · {d.proprietario || "—"}{d.nif ? ` · NIF ${d.nif}` : ""}</div>
+                    {d.observacoes ? <p className="decl-note"><StickyNote className="mt-px h-3.5 w-3.5 shrink-0" /><span>{d.observacoes}</span></p> : null}
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        <Button variant="ghost" aria-pressed={d.urgente} className={`decl-pill${d.urgente ? " decl-pill--urgent" : ""}`} onClick={() => upd(d.id, { urgente: !d.urgente })}>
+                          <i />{d.urgente ? "Com urgência" : "Sem urgência"}
+                        </Button>
+                        <Button variant="ghost" aria-pressed={d.reconhecida} className={`decl-pill${d.reconhecida ? " decl-pill--recognized" : ""}`} onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>
+                          <i />{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Descarregar declaração Word" onClick={() => { if (e) void descarregarDeclaracao(e, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Voltar a por fazer" onClick={() => upd(d.id, { feita: false, feita_em: null })}><Undo2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Apagar" onClick={() => del(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </div>
+                    {d.reconhecida && (
+                      <div className="decl-rec-process">
+                        <span className="decl-rec-status"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{reconhecimentoLabels[d.reconhecimento_estado]}</span>
+                        {d.reconhecimento_estado === "por_enviar" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "na_solicitadora" })}><Send className="h-3.5 w-3.5" />Marcar envio à solicitadora</Button>}
+                        {d.reconhecimento_estado === "na_solicitadora" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "no_escritorio" })}><Building2 className="h-3.5 w-3.5" />Já está no escritório</Button>}
+                      </div>
+                    )}
                   </div>
                 ))}
-              </AccordionContent>
-            </AccordionItem>
+              </div>
+            </article>
           );
         })}
-      </Accordion>
+      </div>
     );
-  };
+  }
 
   function listPorFazer() {
     const fmt = (s: string) => new Date(s).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -201,7 +227,7 @@ function Page() {
           <TabsTrigger className="decl-tab" value="mapa"><ChartNoAxesCombined className="h-4 w-4" />Mapa do mês</TabsTrigger>
         </TabsList>
         <TabsContent value="por">{listPorFazer()}</TabsContent>
-        <TabsContent value="feitas">{list(true)}</TabsContent>
+        <TabsContent value="feitas">{listFeitas()}</TabsContent>
         <TabsContent value="mapa"><Mapa decs={decs.data ?? []} edMap={edMap} /></TabsContent>
       </Tabs>
     </div>
@@ -220,33 +246,79 @@ const eur = (n: number) => n.toLocaleString("pt-PT", { style: "currency", curren
 
 function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
   const [mes, setMes] = useState(new Date().toISOString().slice(0, 7));
+  const shift = (delta: number) => {
+    const [y, m] = mes.split("-").map(Number);
+    setMes(new Date(Date.UTC(y, m - 1 + delta, 1)).toISOString().slice(0, 7));
+  };
+  const label = (() => { const s = new Date(`${mes}-01T00:00:00`).toLocaleDateString("pt-PT", { month: "long", year: "numeric" }); return s.charAt(0).toUpperCase() + s.slice(1); })();
   const rows = decs.filter((d) => d.feita && (d.feita_em ?? d.created_at).slice(0, 7) === mes);
   const rec = rows.filter((d) => d.reconhecida);
+  const sum = (fn: (d: Dec) => number) => rows.reduce((s, d) => s + fn(d), 0);
+  const stats: { label: string; value: string; note?: string }[] = [
+    { label: "Feitas", value: String(rows.length), note: rec.length ? `${rec.length} com reconhecimento` : "todas sem reconhecimento" },
+    { label: "Faturado (c/ IVA)", value: eur(sum(preco)) },
+    { label: `A pagar à solicitadora (${rec.length})`, value: eur(sum(solicitadora)) },
+    { label: "Nono (sem IVA)", value: eur(sum(nono)) },
+    { label: "IVA (fica p/ Dinâmico)", value: eur(sum((d) => dinamico(d) - nono(d))) },
+  ];
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2"><Label>Mês</Label><Input type="month" className="w-44" value={mes} onChange={(e) => setMes(e.target.value)} /></div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Feitas</div><div className="text-2xl font-semibold">{rows.length}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Faturado (c/ IVA)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + preco(d), 0))}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">A pagar à solicitadora ({rec.length})</div><div className="text-2xl font-semibold text-primary">{eur(rec.reduce((s, d) => s + solicitadora(d), 0))}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Nono (sem IVA)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + nono(d), 0))}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">IVA (fica p/ Dinâmico)</div><div className="text-2xl font-semibold">{eur(rows.reduce((s, d) => s + dinamico(d) - nono(d), 0))}</div></CardContent></Card>
+    <div className="space-y-5">
+      <div className="decl-map-head">
+        <div>
+          <p className="decl-map-kicker">Mapa do mês</p>
+          <div className="decl-map-monthrow">
+            <Button size="icon" variant="ghost" className="decl-map-step" aria-label="Mês anterior" onClick={() => shift(-1)}><ChevronLeft className="h-4 w-4" /></Button>
+            <span className="decl-map-month">{label}</span>
+            <Button size="icon" variant="ghost" className="decl-map-step" aria-label="Mês seguinte" onClick={() => shift(1)}><ChevronRight className="h-4 w-4" /></Button>
+          </div>
+        </div>
+        <Input type="month" className="decl-map-input w-40" value={mes} onChange={(e) => { if (e.target.value) setMes(e.target.value); }} aria-label="Escolher mês" />
       </div>
-      {rows.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma declaração feita neste mês.</p> : (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted text-left"><tr><th className="p-2">Data</th><th className="p-2">Prédio</th><th className="p-2">Fração</th><th className="p-2">Tipo</th><th className="p-2 text-right">Preço</th><th className="p-2 text-right">Solicitadora (c/ IVA)</th><th className="p-2 text-right">Nono (sem IVA)</th><th className="p-2 text-right">IVA</th></tr></thead>
-            <tbody>{rows.map((d) => { const e = edMap.get(d.edificio_id); return (
-              <tr key={d.id} className="border-t">
-                <td className="p-2">{new Date(d.feita_em ?? d.created_at).toLocaleDateString("pt-PT")}</td>
-                <td className="p-2">{e?.identificacao_interna ? `${e.identificacao_interna} — ` : ""}{e?.nome}</td>
-                <td className="p-2">{d.fracao || "—"}</td>
-                <td className="p-2">{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"} · {d.urgente ? "Urgente" : "Normal"}</td>
-                <td className="p-2 text-right">{eur(preco(d))}</td>
-                <td className="p-2 text-right">{d.reconhecida ? eur(solicitadora(d)) : "—"}</td>
-                <td className="p-2 text-right">{eur(dinamico(d) / IVA)}</td>
-                <td className="p-2 text-right">{eur(dinamico(d) - dinamico(d) / IVA)}</td>
-              </tr>); })}</tbody>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {stats.map((s) => (
+          <div key={s.label} className="decl-stat">
+            <span className="decl-stat-label">{s.label}</span>
+            <span className="decl-stat-value">{s.value}</span>
+            {s.note ? <span className="decl-stat-note">{s.note}</span> : null}
+          </div>
+        ))}
+      </div>
+      {rows.length === 0 ? (
+        <div className="decl-empty">
+          <CalendarCheck className="h-5 w-5" />
+          <p>Nenhuma declaração feita em {label}.</p>
+        </div>
+      ) : (
+        <div className="decl-map-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th><th>Prédio</th><th>Fração</th><th>Tipo</th>
+                <th className="num">Preço</th><th className="num">Solicitadora (c/ IVA)</th><th className="num">Nono (sem IVA)</th><th className="num">IVA</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((d) => { const e = edMap.get(d.edificio_id); return (
+                <tr key={d.id} className={d.reconhecida ? "row-recognized" : undefined}>
+                  <td className="whitespace-nowrap">{new Date(d.feita_em ?? d.created_at).toLocaleDateString("pt-PT")}</td>
+                  <td className="font-medium">{e?.identificacao_interna ? `${e.identificacao_interna} — ` : ""}{e?.nome}</td>
+                  <td>{d.fracao || "—"}</td>
+                  <td>{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"} · {d.urgente ? "Urgente" : "Normal"}</td>
+                  <td className="num">{eur(preco(d))}</td>
+                  <td className="num">{d.reconhecida ? eur(solicitadora(d)) : "—"}</td>
+                  <td className="num">{eur(nono(d))}</td>
+                  <td className="num">{eur(dinamico(d) - nono(d))}</td>
+                </tr>); })}
+            </tbody>
+            <tfoot>
+              <tr className="decl-map-total">
+                <td colSpan={4}>Total de {label}</td>
+                <td className="num">{eur(sum(preco))}</td>
+                <td className="num">{eur(sum(solicitadora))}</td>
+                <td className="num">{eur(sum(nono))}</td>
+                <td className="num">{eur(sum((d) => dinamico(d) - nono(d)))}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       )}
