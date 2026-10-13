@@ -56,8 +56,8 @@ function Page() {
   const abrir = (dia: string, assembleia?: Ass) => setForm({ dia, assembleia });
   const agora = Date.now();
   const lista = ass.data ?? [];
-  const convocar = lista.filter((a) => !a.convocatoria_enviada && new Date(a.data_hora).getTime() > agora && new Date(a.data_hora).getTime() - agora <= 15 * DIA);
-  const proximas = lista.filter((a) => { const t = new Date(a.data_hora).getTime() - agora; return t > 0 && t <= 2 * DIA; });
+  const convocar = lista.filter((a) => !a.cancelada && !a.convocatoria_enviada && new Date(a.data_hora).getTime() > agora && new Date(a.data_hora).getTime() - agora <= 15 * DIA);
+  const proximas = lista.filter((a) => { if (a.cancelada) return false; const t = new Date(a.data_hora).getTime() - agora; return t > 0 && t <= 2 * DIA; });
 
   const inicio = new Date(mes); inicio.setDate(1 - ((mes.getDay() + 6) % 7));
   const dias = Array.from({ length: 42 }, (_, i) => new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + i));
@@ -72,7 +72,7 @@ function Page() {
         <Button onClick={() => abrir(hoje)}><Plus className="h-4 w-4 mr-1" />Marcar reunião</Button>
       </div>
 
-      <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">{[{label: "Convocatória por enviar", dot: "bg-meeting-pending"}, {label: "Convocatória enviada", dot: "bg-primary"}, {label: "Ata feita", dot: "bg-meeting-minutes"}, {label: "Ata enviada", dot: "bg-meeting-sent"}].map((estado) => <span key={estado.label} className="flex items-center gap-2"><span className={`size-2.5 rounded-full ${estado.dot}`} />{estado.label}</span>)}</div>
+      <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">{[{label: "Convocatória por enviar", dot: "bg-meeting-pending"}, {label: "Convocatória enviada", dot: "bg-primary"}, {label: "Ata feita", dot: "bg-meeting-minutes"}, {label: "Ata enviada", dot: "bg-meeting-sent"}, {label: "Cancelada", dot: "bg-destructive"}].map((estado) => <span key={estado.label} className="flex items-center gap-2"><span className={`size-2.5 rounded-full ${estado.dot}`} />{estado.label}</span>)}</div>
       {(ass.isError || eds.isError) && <div className="text-destructive text-sm">Não foi possível carregar as assembleias. <Button variant="outline" size="sm" onClick={() => { ass.refetch(); eds.refetch(); }}>Tentar novamente</Button></div>}
       <div className="space-y-2">
         <Input placeholder="Pesquisar prédio (nome ou nº)…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />

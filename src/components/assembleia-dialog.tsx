@@ -35,7 +35,7 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
   const [removePdf, setRemovePdf] = useState(false);
   const [busy, setBusy] = useState(false);
   const [cancel, setCancel] = useState({ motivo: "", dia: "", hora: "20:00" });
-  const estado = estadoAssembleia({ ...form, ata_fracoes: fracoes });
+  const estado = estadoAssembleia({ ...form, ata_fracoes: fracoes, cancelada: a?.cancelada });
   const enviados = fracoes.filter((f) => f.email || f.carta).length;
   const mudarFracao = (i: number, patch: Partial<FracaoAta>) => setFracoes((prev) => prev.map((f, j) => j === i ? { ...f, ...patch } : f));
   const escolherEdificio = (id: string) => {
