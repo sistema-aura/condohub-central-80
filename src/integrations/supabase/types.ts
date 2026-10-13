@@ -24,6 +24,8 @@ export type Database = {
           ata_pdf_path: string | null
           avisada_convocatoria: boolean
           avisada_reuniao: boolean
+          cancelada: boolean
+          cancelamento_motivo: string | null
           convocatoria_enviada: boolean
           created_at: string
           created_by: string | null
@@ -43,6 +45,8 @@ export type Database = {
           ata_pdf_path?: string | null
           avisada_convocatoria?: boolean
           avisada_reuniao?: boolean
+          cancelada?: boolean
+          cancelamento_motivo?: string | null
           convocatoria_enviada?: boolean
           created_at?: string
           created_by?: string | null
@@ -62,6 +66,8 @@ export type Database = {
           ata_pdf_path?: string | null
           avisada_convocatoria?: boolean
           avisada_reuniao?: boolean
+          cancelada?: boolean
+          cancelamento_motivo?: string | null
           convocatoria_enviada?: boolean
           created_at?: string
           created_by?: string | null
