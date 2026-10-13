@@ -113,6 +113,13 @@
       "when": 1791891557680,
       "tag": "0015_assembleias_cancelamento",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791906640224,
+      "tag": "0016_declaracoes_acompanhamento_reconhecimento",
+      "breakpoints": true
     }
   ]
 }
