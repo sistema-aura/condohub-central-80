@@ -65,51 +65,80 @@ function Page() {
     refresh();
   }
 
-  const list = (feita: boolean) => {
-    const rows = (decs.data ?? []).filter((d) => d.feita === feita);
+  function listFeitas() {
+    const fmt = (s: string) => new Date(s).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const rows = (decs.data ?? []).filter((d) => d.feita);
     const groups = new Map<string, Dec[]>();
     rows.forEach((d) => groups.set(d.edificio_id, [...(groups.get(d.edificio_id) ?? []), d]));
     const keys = [...groups.keys()].sort((a, b) => (edMap.get(a)?.identificacao_interna ?? "").localeCompare(edMap.get(b)?.identificacao_interna ?? ""));
-    if (!keys.length) return <p className="py-8 text-center text-sm text-muted-foreground">Nada aqui.</p>;
+    if (!keys.length) return (
+      <div className="decl-empty">
+        <Folder className="h-5 w-5" />
+        <p>Ainda não há declarações feitas — quando marcares «Feita», aparecem aqui.</p>
+      </div>
+    );
     return (
-      <Accordion type="multiple" className="space-y-2">
+      <div className="space-y-5">
         {keys.map((k) => {
           const e = edMap.get(k);
           const items = groups.get(k) ?? [];
-          const urg = items.filter((i) => i.urgente && !i.feita).length;
+          const urg = items.filter((i) => i.urgente).length;
+          const recN = items.filter((i) => i.reconhecida).length;
           return (
-            <AccordionItem key={k} value={k} className="rounded-lg border bg-card px-4">
-              <AccordionTrigger>
-                <span className="flex items-center gap-2 text-left">
-                  <Folder className="h-4 w-4 text-primary" />
-                  {e?.identificacao_interna ? `${e.identificacao_interna} — ` : ""}{e?.nome ?? "?"}
-                  <Badge variant="secondary">{items.length}</Badge>
-                  {urg > 0 && <Badge variant="destructive">{urg} urgente</Badge>}
-                </span>
-              </AccordionTrigger>
-              <AccordionContent className="space-y-2">
+            <article key={k} className="decl-card">
+              <div className="decl-rail" />
+              <header className="flex flex-wrap items-center gap-3 px-5 py-4">
+                <span className="decl-num">{e?.identificacao_interna ?? "—"}</span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="truncate text-[15px] font-semibold tracking-tight">{e?.nome ?? "Prédio"}</h2>
+                  {e?.localidade ? <p className="truncate text-xs text-muted-foreground">{e.morada ? `${e.morada}, ` : ""}{e.localidade}</p> : null}
+                </div>
+                <span className="decl-chip">{items.length} {items.length === 1 ? "declaração" : "declarações"}</span>
+                {urg > 0 && <span className="decl-chip decl-chip--urgent">{urg} urgente{urg === 1 ? "" : "s"}</span>}
+                {recN > 0 && <span className="decl-chip decl-chip--recognized">{recN} reconhecida{recN === 1 ? "" : "s"}</span>}
+                <span className="text-sm font-semibold text-primary">{eur(items.reduce((s, d) => s + preco(d), 0))}</span>
+              </header>
+              <div className="decl-tiles px-5 pb-5">
                 {items.map((d) => (
-                  <div key={d.id} className="flex flex-wrap items-center gap-2 rounded-md border p-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium">Fração {d.fracao || "—"} · {d.proprietario || "—"}</div>
-                      <div className="text-xs text-muted-foreground">NIF {d.nif || "—"} · {new Date(d.created_at).toLocaleDateString("pt-PT")}{d.observacoes ? ` · ${d.observacoes}` : ""}</div>
+                  <div key={d.id} className={`decl-tile${d.reconhecida ? " decl-tile--recognized" : ""}`}>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</span>
+                      <span className="shrink-0 text-xs font-semibold text-primary">{eur(preco(d))}</span>
                     </div>
-                    <Badge variant={d.urgente ? "destructive" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { urgente: !d.urgente })}>{d.urgente ? "Com urgência" : "Sem urgência"}</Badge>
-                    <Badge variant={d.reconhecida ? "default" : "outline"} className="cursor-pointer" onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}</Badge>
-                    {d.reconhecida && <span className="decl-rec-status">{reconhecimentoLabels[d.reconhecimento_estado]}</span>}
-                    <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
-                     <Button size="icon" variant="ghost" title="Descarregar declaração Word" onClick={() => { if (e) void descarregarDeclaracao(e, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" title={d.feita ? "Voltar a por fazer" : "Marcar como feita"} onClick={() => upd(d.id, { feita: !d.feita, feita_em: d.feita ? null : new Date().toISOString() })}>{d.feita ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}</Button>
-                    <Button size="icon" variant="ghost" onClick={() => del(d.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <div className="mt-0.5 truncate text-[11px] text-muted-foreground">Feita em {fmt(d.feita_em ?? d.created_at)} · {d.proprietario || "—"}{d.nif ? ` · NIF ${d.nif}` : ""}</div>
+                    {d.observacoes ? <p className="decl-note"><StickyNote className="mt-px h-3.5 w-3.5 shrink-0" /><span>{d.observacoes}</span></p> : null}
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        <Button variant="ghost" aria-pressed={d.urgente} className={`decl-pill${d.urgente ? " decl-pill--urgent" : ""}`} onClick={() => upd(d.id, { urgente: !d.urgente })}>
+                          <i />{d.urgente ? "Com urgência" : "Sem urgência"}
+                        </Button>
+                        <Button variant="ghost" aria-pressed={d.reconhecida} className={`decl-pill${d.reconhecida ? " decl-pill--recognized" : ""}`} onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>
+                          <i />{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Descarregar declaração Word" onClick={() => { if (e) void descarregarDeclaracao(e, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Voltar a por fazer" onClick={() => upd(d.id, { feita: false, feita_em: null })}><Undo2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Apagar" onClick={() => del(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </div>
+                    {d.reconhecida && (
+                      <div className="decl-rec-process">
+                        <span className="decl-rec-status"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{reconhecimentoLabels[d.reconhecimento_estado]}</span>
+                        {d.reconhecimento_estado === "por_enviar" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "na_solicitadora" })}><Send className="h-3.5 w-3.5" />Marcar envio à solicitadora</Button>}
+                        {d.reconhecimento_estado === "na_solicitadora" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "no_escritorio" })}><Building2 className="h-3.5 w-3.5" />Já está no escritório</Button>}
+                      </div>
+                    )}
                   </div>
                 ))}
-              </AccordionContent>
-            </AccordionItem>
+              </div>
+            </article>
           );
         })}
-      </Accordion>
+      </div>
     );
-  };
+  }
 
   function listPorFazer() {
     const fmt = (s: string) => new Date(s).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
