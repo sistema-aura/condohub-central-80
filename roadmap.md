@@ -12,3 +12,8 @@
 - [x] Guardar e mostrar acompanhamento da solicitadora, só nas reconhecidas.
 - [x] Usar código do prédio e fração no nome Word.
 - [x] Verificar gravação, reabertura e transferência.
+
+## Feitas como pastas
+- [x] Apresentar as declarações feitas em pastas por prédio.
+- [x] Abrir e fechar a pasta com as declarações lá dentro.
+- [x] Verificar abertura, fecho e leitura dos nomes.

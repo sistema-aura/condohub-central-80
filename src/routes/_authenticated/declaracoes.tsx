@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Printer, Check, Undo2, Trash2, Folder, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck } from "lucide-react";
+import { Plus, Printer, Check, Undo2, Trash2, Folder, FolderOpen, X, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ function Page() {
   });
   const edMap = useMemo(() => new Map((eds.data ?? []).map((e) => [e.id, e])), [eds.data]);
   const refresh = () => qc.invalidateQueries({ queryKey: ["declaracoes"] });
+  const [pasta, setPasta] = useState<string | null>(null);
 
   async function upd(id: string, patch: Partial<Dec>) {
     const { error } = await supabase.from("declaracoes").update(patch).eq("id", id);
@@ -77,65 +78,93 @@ function Page() {
         <p>Ainda não há declarações feitas — quando marcares «Feita», aparecem aqui.</p>
       </div>
     );
+    const total = (arr: Dec[]) => arr.reduce((s, d) => s + preco(d), 0);
+    const aberta = pasta && keys.includes(pasta) ? pasta : null;
+    const eAb = aberta ? edMap.get(aberta) : undefined;
+    const itAb = aberta ? (groups.get(aberta) ?? []) : [];
     return (
-      <div className="space-y-5">
-        {keys.map((k) => {
-          const e = edMap.get(k);
-          const items = groups.get(k) ?? [];
-          const urg = items.filter((i) => i.urgente).length;
-          const recN = items.filter((i) => i.reconhecida).length;
-          return (
-            <article key={k} className="decl-card">
-              <div className="decl-rail" />
-              <header className="flex flex-wrap items-center gap-3 px-5 py-4">
-                <span className="decl-num">{e?.identificacao_interna ?? "—"}</span>
-                <div className="min-w-0 flex-1">
-                  <h2 className="truncate text-[15px] font-semibold tracking-tight">{e?.nome ?? "Prédio"}</h2>
-                  {e?.localidade ? <p className="truncate text-xs text-muted-foreground">{e.morada ? `${e.morada}, ` : ""}{e.localidade}</p> : null}
-                </div>
-                <span className="decl-chip">{items.length} {items.length === 1 ? "declaração" : "declarações"}</span>
-                {urg > 0 && <span className="decl-chip decl-chip--urgent">{urg} urgente{urg === 1 ? "" : "s"}</span>}
-                {recN > 0 && <span className="decl-chip decl-chip--recognized">{recN} reconhecida{recN === 1 ? "" : "s"}</span>}
-                <span className="text-sm font-semibold text-primary">{eur(items.reduce((s, d) => s + preco(d), 0))}</span>
-              </header>
-              <div className="decl-tiles px-5 pb-5">
-                {items.map((d) => (
-                  <div key={d.id} className={`decl-tile${d.reconhecida ? " decl-tile--recognized" : ""}`}>
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="truncate text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</span>
-                      <span className="shrink-0 text-xs font-semibold text-primary">{eur(preco(d))}</span>
-                    </div>
-                    <div className="mt-0.5 truncate text-[11px] text-muted-foreground">Feita em {fmt(d.feita_em ?? d.created_at)} · {d.proprietario || "—"}{d.nif ? ` · NIF ${d.nif}` : ""}</div>
-                    {d.observacoes ? <p className="decl-note"><StickyNote className="mt-px h-3.5 w-3.5 shrink-0" /><span>{d.observacoes}</span></p> : null}
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex flex-wrap gap-1.5">
-                        <Button variant="ghost" aria-pressed={d.urgente} className={`decl-pill${d.urgente ? " decl-pill--urgent" : ""}`} onClick={() => upd(d.id, { urgente: !d.urgente })}>
-                          <i />{d.urgente ? "Com urgência" : "Sem urgência"}
-                        </Button>
-                        <Button variant="ghost" aria-pressed={d.reconhecida} className={`decl-pill${d.reconhecida ? " decl-pill--recognized" : ""}`} onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>
-                          <i />{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}
-                        </Button>
-                      </div>
-                      <div className="flex items-center gap-0.5">
-                        <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
-                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Descarregar declaração Word" onClick={() => { if (e) void descarregarDeclaracao(e, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-3.5 w-3.5" /></Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Voltar a por fazer" onClick={() => upd(d.id, { feita: false, feita_em: null })}><Undo2 className="h-3.5 w-3.5" /></Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" title="Apagar" onClick={() => del(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                      </div>
-                    </div>
-                    {d.reconhecida && (
-                      <div className="decl-rec-process">
-                        <span className="decl-rec-status"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{reconhecimentoLabels[d.reconhecimento_estado]}</span>
-                        {d.reconhecimento_estado === "por_enviar" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "na_solicitadora" })}><Send className="h-3.5 w-3.5" />Marcar envio à solicitadora</Button>}
-                        {d.reconhecimento_estado === "na_solicitadora" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "no_escritorio" })}><Building2 className="h-3.5 w-3.5" />Já está no escritório</Button>}
-                      </div>
-                    )}
-                  </div>
-                ))}
+      <div className="space-y-4">
+        <div className="decl-folders-bar">
+          <span>{keys.length} {keys.length === 1 ? "prédio" : "prédios"}</span>
+          <span aria-hidden="true">·</span>
+          <span>{rows.length} {rows.length === 1 ? "declaração" : "declarações"} arquivadas</span>
+          <span aria-hidden="true">·</span>
+          <span className="font-semibold text-primary">{eur(total(rows))}</span>
+        </div>
+        <div className="decl-folders">
+          {keys.map((k) => {
+            const e = edMap.get(k);
+            const items = groups.get(k) ?? [];
+            const recN = items.filter((i) => i.reconhecida).length;
+            const urgN = items.filter((i) => i.urgente).length;
+            const open = k === aberta;
+            return (
+              <button type="button" key={k} className="decl-folder" data-open={open ? "true" : undefined} aria-expanded={open} onClick={() => setPasta(open ? null : k)}>
+                <span className="decl-folder-body">
+                  <span className="decl-folder-top">
+                    <FolderOpen className={`h-4 w-4 ${open ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className="decl-folder-count">{items.length}</span>
+                  </span>
+                  <span className="decl-folder-num">{e?.identificacao_interna ?? "—"}</span>
+                  <span className="decl-folder-name">{e?.nome ?? "Prédio"}</span>
+                  {e?.localidade ? <span className="decl-folder-addr">{e.morada ? `${e.morada}, ` : ""}{e.localidade}</span> : null}
+                  <span className="decl-folder-foot">
+                    <span className="decl-folder-total">{eur(total(items))}</span>
+                    {recN > 0 ? <span className="decl-folder-tag decl-folder-tag--rec">{recN} rec.</span> : null}
+                    {urgN > 0 ? <span className="decl-folder-tag decl-folder-tag--urg">{urgN} urg.</span> : null}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {aberta ? (
+          <section className="decl-folder-open">
+            <header className="decl-folder-open-head">
+              <span className="decl-num">{eAb?.identificacao_interna ?? "—"}</span>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-[15px] font-semibold tracking-tight">{eAb?.nome ?? "Prédio"}</h2>
+                <p className="truncate text-xs text-muted-foreground">{itAb.length} {itAb.length === 1 ? "declaração feita" : "declarações feitas"} · {eur(total(itAb))}</p>
               </div>
-            </article>
-          );
-        })}
+              <Button size="sm" variant="ghost" className="decl-folder-close" onClick={() => setPasta(null)}><X className="h-3.5 w-3.5" />Fechar pasta</Button>
+            </header>
+            <div className="decl-tiles">
+              {itAb.map((d) => (
+                <div key={d.id} className={`decl-tile${d.reconhecida ? " decl-tile--recognized" : ""}`}>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="truncate text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</span>
+                    <span className="shrink-0 text-xs font-semibold text-primary">{eur(preco(d))}</span>
+                  </div>
+                  <div className="mt-0.5 truncate text-[11px] text-muted-foreground">Feita em {fmt(d.feita_em ?? d.created_at)} · {d.proprietario || "—"}{d.nif ? ` · NIF ${d.nif}` : ""}</div>
+                  {d.observacoes ? <p className="decl-note"><StickyNote className="mt-px h-3.5 w-3.5 shrink-0" /><span>{d.observacoes}</span></p> : null}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      <Button variant="ghost" aria-pressed={d.urgente} className={`decl-pill${d.urgente ? " decl-pill--urgent" : ""}`} onClick={() => upd(d.id, { urgente: !d.urgente })}>
+                        <i />{d.urgente ? "Com urgência" : "Sem urgência"}
+                      </Button>
+                      <Button variant="ghost" aria-pressed={d.reconhecida} className={`decl-pill${d.reconhecida ? " decl-pill--recognized" : ""}`} onClick={() => upd(d.id, { reconhecida: !d.reconhecida })}>
+                        <i />{d.reconhecida ? "Reconhecida" : "Sem reconhecimento"}
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      <DecDialog eds={eds.data ?? []} onDone={refresh} dec={d} />
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Descarregar declaração Word" onClick={() => { if (eAb) void descarregarDeclaracao(eAb, d).catch((error: Error) => toast.error(error.message)); }}><Printer className="h-3.5 w-3.5" /></Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Voltar a por fazer" onClick={() => upd(d.id, { feita: false, feita_em: null })}><Undo2 className="h-3.5 w-3.5" /></Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Apagar" onClick={() => del(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </div>
+                  </div>
+                  {d.reconhecida && (
+                    <div className="decl-rec-process">
+                      <span className="decl-rec-status"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{reconhecimentoLabels[d.reconhecimento_estado]}</span>
+                      {d.reconhecimento_estado === "por_enviar" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "na_solicitadora" })}><Send className="h-3.5 w-3.5" />Marcar envio à solicitadora</Button>}
+                      {d.reconhecimento_estado === "na_solicitadora" && <Button size="sm" variant="outline" className="decl-rec-action" onClick={() => upd(d.id, { reconhecimento_estado: "no_escritorio" })}><Building2 className="h-3.5 w-3.5" />Já está no escritório</Button>}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </div>
     );
   }
