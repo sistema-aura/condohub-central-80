@@ -1,6 +1,6 @@
 import JSZip from "jszip";
 
-type Edificio = { nome: string; morada: string | null; codigo_postal: string | null; localidade: string | null; observacoes: string | null };
+type Edificio = { nome: string; identificacao_interna: string | null; morada: string | null; codigo_postal: string | null; localidade: string | null; observacoes: string | null };
 type Declaracao = { fracao: string | null; proprietario: string | null; nif: string | null; quota_mensal: string | null; fundo_reserva: string | null; quota_seguro: string | null; quota_extraordinaria: string | null };
 
 const NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
@@ -86,7 +86,10 @@ export async function descarregarDeclaracao(edificio: Edificio, declaracao: Decl
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `Declaracao-${(edificio.nome || "predio").replace(/[^\p{L}\p{N}-]+/gu, "-")}-${year}-${String(month).padStart(2, "0")}.docx`;
+  const filenamePart = (value: string) => value.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").replace(/\s+/g, "_").replace(/[. ]+$/, "");
+  const codigo = filenamePart(edificio.identificacao_interna || edificio.nome || "predio");
+  const fracao = filenamePart(required(declaracao.fracao, "a fração"));
+  link.download = `${/^\d+$/.test(codigo) ? codigo.padStart(3, "0") : codigo}_Declaração_dnd_${fracao}.docx`;
   document.body.append(link);
   link.click();
   link.remove();

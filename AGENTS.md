@@ -16,6 +16,7 @@
 ## Declaration documents
 - Generate declarations in the browser by filling text runs in the supplied `public/modelo-declaracao.docx`, rather than reconstructing its layout; this preserves the original logo, header, table, footer and Word formatting.
 - Store monthly charge fields on each declaration and calculate the debt-free date as the last calendar day of the current month in Lisbon; this keeps a generated declaration tied to its own values and local calendar.
+- Persist recognition tracking separately from completion and hide it without clearing it when recognition is disabled; this preserves each declaration's processing history and monthly accounting.
 
 ## Assembly minutes
 - Keep assembly status derivation in the shared assembly helper and editing in its dedicated right-side sheet; calendar and form must agree on completion.

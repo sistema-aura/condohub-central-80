@@ -1,0 +1,1 @@
+ALTER TABLE public.declaracoes ADD COLUMN reconhecimento_estado text NOT NULL DEFAULT 'por_enviar' CHECK (reconhecimento_estado IN ('por_enviar', 'na_solicitadora', 'no_escritorio'));

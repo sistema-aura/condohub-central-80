@@ -186,6 +186,9 @@
   --decl-note: #8a5a12;
   --decl-note-soft: #fff8e8;
   --decl-note-line: #f2e2bd;
+  --decl-recognized: oklch(0.44 0.09 180);
+  --decl-recognized-soft: oklch(0.96 0.025 180);
+  --decl-recognized-line: oklch(0.82 0.06 180);
   --decl-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 6%, transparent),
     0 22px 45px -30px color-mix(in srgb, var(--meeting-sheet-primary) 55%, transparent);
 }
@@ -199,6 +202,9 @@
   --decl-note: #fcd48a;
   --decl-note-soft: color-mix(in srgb, #fcd48a 12%, transparent);
   --decl-note-line: color-mix(in srgb, #fcd48a 32%, transparent);
+  --decl-recognized: oklch(0.81 0.11 180);
+  --decl-recognized-soft: color-mix(in srgb, var(--decl-recognized) 12%, var(--card));
+  --decl-recognized-line: color-mix(in srgb, var(--decl-recognized) 38%, var(--border));
   --decl-shadow: 0 1px 2px rgb(0 0 0 / 30%),
     0 22px 45px -30px color-mix(in srgb, var(--primary) 55%, transparent);
 }
@@ -414,6 +420,51 @@
   box-shadow: 0 12px 24px -14px color-mix(in srgb, var(--meeting-sheet-primary) 80%, transparent);
 }
 .decl-save:hover { filter: brightness(1.06); }
+.decl-tile--recognized {
+  background: var(--decl-recognized-soft);
+  border-color: var(--decl-recognized-line);
+  border-left: 4px solid var(--decl-recognized);
+}
+.decl-pill--recognized, .decl-toggle--recognized {
+  color: var(--decl-recognized);
+  background: var(--decl-recognized-soft);
+  border-color: var(--decl-recognized-line);
+}
+.decl-pill { height: auto; }
+.decl-rec-process {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .65rem;
+  margin-top: 1rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--decl-recognized-line);
+}
+.decl-rec-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--decl-recognized);
+}
+.decl-rec-action { color: var(--decl-recognized); border-color: var(--decl-recognized-line); white-space: normal; height: auto; min-height: 2rem; }
+.decl-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  height: auto;
+  max-width: 100%;
+  gap: .35rem;
+  padding: .35rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: var(--color-secondary);
+}
+.decl-tab { flex: 1 1 auto; gap: .5rem; min-height: 2.75rem; padding: .5rem 1rem; border-radius: .5rem; color: var(--color-muted-foreground); }
+.decl-tab[data-state="active"] { background: var(--meeting-sheet-primary); color: var(--color-primary-foreground); box-shadow: var(--decl-shadow); }
+.decl-tab-count { display: grid; place-items: center; min-width: 1.5rem; height: 1.5rem; border-radius: .4rem; background: color-mix(in srgb, currentColor 12%, transparent); font-size: .75rem; }
 @media (prefers-reduced-motion: reduce) {
   .decl-sheet { animation: none !important; transition: none !important; }
 }

@@ -132,6 +132,7 @@ export type Database = {
           quota_mensal: string | null
           quota_seguro: string | null
           reconhecida: boolean
+          reconhecimento_estado: string
           updated_at: string
           urgente: boolean
         }
@@ -151,6 +152,7 @@ export type Database = {
           quota_mensal?: string | null
           quota_seguro?: string | null
           reconhecida?: boolean
+          reconhecimento_estado?: string
           updated_at?: string
           urgente?: boolean
         }
@@ -170,6 +172,7 @@ export type Database = {
           quota_mensal?: string | null
           quota_seguro?: string | null
           reconhecida?: boolean
+          reconhecimento_estado?: string
           updated_at?: string
           urgente?: boolean
         }
