@@ -131,6 +131,8 @@ export type Database = {
           pago_nono_pdf: string | null
           pago_solicitadora: boolean
           pago_solicitadora_pdf: string | null
+          pdf_nome: string | null
+          pdf_path: string | null
           proprietario: string | null
           quota_extraordinaria: string | null
           quota_mensal: string | null
@@ -155,6 +157,8 @@ export type Database = {
           pago_nono_pdf?: string | null
           pago_solicitadora?: boolean
           pago_solicitadora_pdf?: string | null
+          pdf_nome?: string | null
+          pdf_path?: string | null
           proprietario?: string | null
           quota_extraordinaria?: string | null
           quota_mensal?: string | null
@@ -179,6 +183,8 @@ export type Database = {
           pago_nono_pdf?: string | null
           pago_solicitadora?: boolean
           pago_solicitadora_pdf?: string | null
+          pdf_nome?: string | null
+          pdf_path?: string | null
           proprietario?: string | null
           quota_extraordinaria?: string | null
           quota_mensal?: string | null
