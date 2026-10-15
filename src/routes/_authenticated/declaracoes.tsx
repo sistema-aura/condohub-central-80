@@ -288,14 +288,14 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
     if (!ids.length) return toast.error("Nenhuma declaração aplicável.");
     setBusy(true);
     try {
-      const patch: Record<string, unknown> = { [`pago_${quem}`]: valor };
+      const patch: Partial<Dec> = { [`pago_${quem}`]: valor };
       if (file) {
         const path = `pagamentos-declaracoes/${quem}/${Date.now()}_${file.name.replace(/[^\w.-]/g, "_")}`;
         const { error } = await supabase.storage.from("condominio-docs").upload(path, file, { contentType: file.type || "application/pdf" });
         if (error) throw error;
-        patch[`pago_${quem}_pdf`] = path;
+        (patch as Record<string, unknown>)[`pago_${quem}_pdf`] = path;
       }
-      const { error } = await supabase.from("declaracoes").update(patch).in("id", ids);
+      const { error } = await supabase.from("declaracoes").update(patch as never).in("id", ids);
       if (error) throw error;
       toast.success(valor ? `Marcado como pago (${ids.length})` : "Pagamento desmarcado");
       setSel(new Set()); setPdf(null);
