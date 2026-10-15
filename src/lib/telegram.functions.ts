@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+import { telegramMessages } from "@/lib/telegram-messages";
+
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
 
 async function gatewayCall<T>(path: string, body?: unknown): Promise<T> {
@@ -70,7 +72,12 @@ export const testarTelegram = createServerFn({ method: "POST" })
     const data = all?.[0];
     if (!data) throw new Error("O Telegram ainda não está ligado. Carrega em «Ligar avisos» primeiro.");
     const hora = new Date().toLocaleString("pt-PT", { timeZone: "Europe/Lisbon" });
-    for (const c of all!) await gatewayCall("/sendMessage", { chat_id: c.chat_id, text: `🔔 Aviso de teste do Condomínio Dinâmico (${hora}).\nSe estás a ler isto, os avisos chegam ao chat certo.` });
+    for (const c of all!) {
+      for (const message of telegramMessages(
+        `📌 CONDOMÍNIO DINÂMICO\n${hora}\n\n✅ Teste de ligação concluído\n\nOs avisos passam a ter títulos destacados e botões de acesso.\nAs convocatórias são agrupadas por data e as pendências da agenda aparecem num resumo.\n\n📅 Assembleias · 📝 Declarações · 📋 Agenda`,
+        process.env.TELEGRAM_APP_URL || "https://condohub-central-80.lovable.app",
+      )) await gatewayCall("/sendMessage", { chat_id: c.chat_id, ...message });
+    }
     return { ok: true, title: all!.map((c) => c.chat_title ?? "?").join(", ") };
   });
 

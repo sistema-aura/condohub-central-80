@@ -143,3 +143,18 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Avisos do Telegram
+
+- Convocatórias pendentes agrupadas num resumo, por ordem de data.
+- Reuniões dos próximos dois dias mantêm avisos próprios (hoje/amanhã/em breve).
+- Cada execução da agenda reúne tarefas, vistorias e declarações por destinatário.
+- Textos longos são divididos em partes numeradas, sem eliminar registos.
+- Botões abrem páginas autenticadas do CondoHub; não alteram estados nem adiam tarefas.
+- `TELEGRAM_APP_URL` é opcional, apenas no servidor, e deve ser um endereço HTTPS.
+  Por omissão os botões apontam para `https://condohub-central-80.lovable.app`.
+- Preservam-se o gateway existente, os horários e os cabeçalhos do cron.
+  Não é necessário configurar webhook para estes botões de navegação.
+- Após disponibilizar a versão no ambiente usado pelo cron, o botão de teste na
+  página Assembleias permite verificar a formatação e os links no Telegram.
+- Testes locais sem envio de mensagens: `node --test tests/telegram-*.test.mjs` (Node 24).
