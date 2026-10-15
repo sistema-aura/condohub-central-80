@@ -127,6 +127,13 @@
       "when": 1792056834676,
       "tag": "0017_declaracoes_pagamentos",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792056936244,
+      "tag": "0018_declaracoes_pdf",
+      "breakpoints": true
     }
   ]
 }

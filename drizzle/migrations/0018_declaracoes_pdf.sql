@@ -1,0 +1,1 @@
+ALTER TABLE public.declaracoes ADD COLUMN pdf_path text, ADD COLUMN pdf_nome text;
