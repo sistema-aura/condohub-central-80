@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Printer, Check, Undo2, Trash2, Folder, FolderOpen, X, FileText, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck } from "lucide-react";
+import { Plus, Printer, Check, Undo2, Trash2, Folder, FolderOpen, X, FileText, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck, Upload, ExternalLink, Loader2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/declaracoes")({
 type Ed = { id: string; nome: string; identificacao_interna: string | null; morada: string | null; codigo_postal: string | null; localidade: string | null; observacoes: string | null };
 type ReconhecimentoEstado = "por_enviar" | "na_solicitadora" | "no_escritorio";
 const reconhecimentoLabels: Record<ReconhecimentoEstado, string> = { por_enviar: "Por enviar à solicitadora", na_solicitadora: "Na solicitadora", no_escritorio: "Já no escritório" };
-type Dec = { id: string; edificio_id: string; fracao: string | null; proprietario: string | null; nif: string | null; urgente: boolean; reconhecida: boolean; reconhecimento_estado: ReconhecimentoEstado; feita: boolean; feita_em: string | null; observacoes: string | null; created_at: string; quota_mensal: string | null; fundo_reserva: string | null; quota_seguro: string | null; quota_extraordinaria: string | null; pago_solicitadora: boolean; pago_solicitadora_pdf: string | null; pago_nono: boolean; pago_nono_pdf: string | null };
+type Dec = { id: string; edificio_id: string; fracao: string | null; proprietario: string | null; nif: string | null; urgente: boolean; reconhecida: boolean; reconhecimento_estado: ReconhecimentoEstado; feita: boolean; feita_em: string | null; observacoes: string | null; created_at: string; quota_mensal: string | null; fundo_reserva: string | null; quota_seguro: string | null; quota_extraordinaria: string | null; pago_solicitadora: boolean; pago_solicitadora_pdf: string | null; pago_nono: boolean; pago_nono_pdf: string | null; pdf_path: string | null; pdf_nome: string | null };
 
 function Page() {
   const qc = useQueryClient();
