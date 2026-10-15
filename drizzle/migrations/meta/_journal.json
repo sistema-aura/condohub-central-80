@@ -141,6 +141,13 @@
       "when": 1792064000000,
       "tag": "0019_telegram_interativo",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792070928398,
+      "tag": "0020_despesas_administrativas",
+      "breakpoints": true
     }
   ]
 }

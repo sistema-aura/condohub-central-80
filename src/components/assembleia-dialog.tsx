@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { DespesaDialog } from "@/components/despesa-dialog";
 import { estadoAssembleia, fracoesEdificio, lerFracoes, pad, ymd, type Assembleia, type EdificioAssembleia, type FracaoAta } from "@/lib/assembleias";
 
 type Props = { initial: { dia: string; assembleia?: Assembleia }; edificios: EdificioAssembleia[]; onClose: () => void; onSaved: () => Promise<unknown> };
@@ -55,6 +56,7 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
     if (error) return toast.error("Não foi possível abrir o PDF.");
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
+  const [despesa, setDespesa] = useState<{ edificio: string; id: string } | null>(null);
   const guardar = async () => {
     if (!form.edificio_id || !form.dia || !form.hora) return toast.error("Preenche o prédio, a data e a hora.");
     if (fracoes.some((f) => !f.fracao.trim())) return toast.error("Preenche a identificação de todas as frações.");
@@ -78,8 +80,8 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
         observacoes: form.observacoes.trim() || null, convocatoria_enviada: form.convocatoria_enviada,
         ata_feita: form.ata_feita, ata_numero: form.ata_numero.trim() || null, ata_data: form.ata_data || null,
         ata_fracoes: fracoes.map((f) => ({ ...f, fracao: f.fracao.trim() })), ata_pdf_path: path, ata_pdf_nome: name };
-      const { error } = a ? await supabase.from("assembleias").update(row).eq("id", a.id) : await supabase.from("assembleias").insert(row);
-      if (error) throw error;
+      const res = a ? await supabase.from("assembleias").update(row).eq("id", a.id).select("id").single() : await supabase.from("assembleias").insert(row).select("id").single();
+      if (res.error) throw res.error;
       persisted = true;
       const { error: edError } = await supabase.from("edificios").update({ fracoes_ata: labels }).eq("id", form.edificio_id);
       if (edError) toast.warning("Assembleia guardada; não foi possível guardar as frações para próximas atas.");
@@ -87,7 +89,8 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
         const { error: cleanupError } = await supabase.storage.from("condominio-docs").remove([a.ata_pdf_path]);
         if (cleanupError) toast.warning("Guardado; não foi possível remover o PDF anterior.");
       }
-      await onSaved(); onClose(); toast.success("Assembleia guardada.");
+      await onSaved(); toast.success("Assembleia guardada.");
+      if (form.convocatoria_enviada && !a?.convocatoria_enviada) setDespesa({ edificio: form.edificio_id, id: res.data.id }); else onClose();
     } catch (e) {
       if (uploaded && !persisted) await supabase.storage.from("condominio-docs").remove([uploaded]);
       toast.error(e instanceof Error ? e.message : "Não foi possível guardar a assembleia.");
@@ -128,6 +131,7 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
     } catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível cancelar."); }
     finally { setBusy(false); }
   };
+  if (despesa) return <DespesaDialog edificioId={despesa.edificio} assembleiaId={despesa.id} onDone={onClose} />;
   return <Sheet open onOpenChange={(open) => { if (!open && !busy) onClose(); }}>
     <SheetContent side="right" resizable resizeKey="assembleias" aria-describedby={undefined} onEscapeKeyDown={(e) => { if (busy) e.preventDefault(); }} onPointerDownOutside={(e) => { if (busy) e.preventDefault(); }} className="assembly-sheet flex h-dvh w-full flex-col gap-0 rounded-none border-meeting-sheet-border bg-meeting-sheet-surface p-0 sm:max-w-[680px] [&>button]:right-6 [&>button]:top-8">
       <SheetHeader className="shrink-0 border-b border-meeting-sheet-border px-6 py-7 pr-14 text-left sm:px-10 sm:py-8">

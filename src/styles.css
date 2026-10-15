@@ -884,3 +884,6 @@
   background: color-mix(in srgb, var(--meeting-sheet-primary) 6%, var(--color-card));
   font-weight: 700;
 }
+
+.despesa-hero { background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 60%, var(--foreground))); color: var(--primary-foreground); }
+.despesa-hero-sub { color: color-mix(in oklab, var(--primary-foreground) 80%, transparent); }
