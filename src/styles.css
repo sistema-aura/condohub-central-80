@@ -717,11 +717,132 @@
   color: var(--color-muted-foreground);
 }
 .decl-map-table {
-  overflow: hidden;
+  overflow-x: auto;
   border: 1px solid var(--color-border);
   border-radius: 1rem;
   background: var(--color-card);
   box-shadow: var(--decl-shadow);
+}
+.decl-map-table::-webkit-scrollbar {
+  height: 8px;
+}
+.decl-map-table::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-muted-foreground) 35%, transparent);
+  border-radius: 999px;
+}
+.decl-pay-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .7rem .9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-card);
+  box-shadow: var(--decl-shadow);
+}
+.decl-pay-info {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  min-width: 0;
+}
+.decl-pay-icon {
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: .75rem;
+  background: color-mix(in srgb, var(--meeting-sheet-primary) 12%, var(--color-card));
+  color: var(--meeting-sheet-primary);
+  flex-shrink: 0;
+}
+.decl-pay-title {
+  font-family: "Sora", sans-serif;
+  font-size: .82rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.decl-pay-sub {
+  font-size: .72rem;
+  color: var(--color-muted-foreground);
+}
+.decl-pay-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+}
+.decl-pay-file {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  height: 2.25rem;
+  padding: 0 .75rem;
+  border: 1px dashed var(--color-border);
+  border-radius: .65rem;
+  font-size: .75rem;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  max-width: 15rem;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.decl-pay-file:hover {
+  border-color: color-mix(in srgb, var(--meeting-sheet-primary) 50%, var(--color-border));
+  color: var(--meeting-sheet-primary);
+}
+.decl-pay-file[data-has="1"] {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--meeting-sheet-primary) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--meeting-sheet-primary) 7%, var(--color-card));
+  color: var(--meeting-sheet-primary);
+}
+.decl-pay-file > span:first-of-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.decl-pay-file-x {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  padding: .1rem;
+  flex-shrink: 0;
+}
+.decl-pay-file-x:hover {
+  background: color-mix(in srgb, var(--color-destructive) 15%, transparent);
+  color: var(--color-destructive);
+}
+.decl-pay-actions {
+  display: inline-flex;
+  gap: .5rem;
+}
+.decl-pay-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: .18rem .6rem;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--color-muted-foreground);
+  background: var(--color-card);
+  white-space: nowrap;
+  transition: all .15s;
+}
+.decl-pay-pill:hover {
+  border-color: color-mix(in srgb, var(--meeting-sheet-primary) 50%, var(--color-border));
+  color: var(--meeting-sheet-primary);
+}
+.decl-pay-pill.is-paid {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--decl-ok) 16%, var(--color-card));
+  color: color-mix(in srgb, var(--decl-ok) 80%, var(--color-foreground));
+}
+.decl-pay-pill.is-paid:hover {
+  background: color-mix(in srgb, var(--decl-ok) 24%, var(--color-card));
 }
 .decl-map-table table {
   width: 100%;
