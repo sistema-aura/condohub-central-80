@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Printer, Check, Undo2, Trash2, Folder, FolderOpen, X, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck } from "lucide-react";
+import { Plus, Printer, Check, Undo2, Trash2, Folder, FolderOpen, X, FileText, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/declaracoes")({
 type Ed = { id: string; nome: string; identificacao_interna: string | null; morada: string | null; codigo_postal: string | null; localidade: string | null; observacoes: string | null };
 type ReconhecimentoEstado = "por_enviar" | "na_solicitadora" | "no_escritorio";
 const reconhecimentoLabels: Record<ReconhecimentoEstado, string> = { por_enviar: "Por enviar à solicitadora", na_solicitadora: "Na solicitadora", no_escritorio: "Já no escritório" };
-type Dec = { id: string; edificio_id: string; fracao: string | null; proprietario: string | null; nif: string | null; urgente: boolean; reconhecida: boolean; reconhecimento_estado: ReconhecimentoEstado; feita: boolean; feita_em: string | null; observacoes: string | null; created_at: string; quota_mensal: string | null; fundo_reserva: string | null; quota_seguro: string | null; quota_extraordinaria: string | null };
+type Dec = { id: string; edificio_id: string; fracao: string | null; proprietario: string | null; nif: string | null; urgente: boolean; reconhecida: boolean; reconhecimento_estado: ReconhecimentoEstado; feita: boolean; feita_em: string | null; observacoes: string | null; created_at: string; quota_mensal: string | null; fundo_reserva: string | null; quota_seguro: string | null; quota_extraordinaria: string | null; pago_solicitadora: boolean; pago_solicitadora_pdf: string | null; pago_nono: boolean; pago_nono_pdf: string | null };
 
 function Page() {
   const qc = useQueryClient();
@@ -278,6 +278,45 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
   const rows = decs.filter((d) => d.feita && (d.feita_em ?? d.created_at).slice(0, 7) === mes);
   const rec = rows.filter((d) => d.reconhecida);
   const sum = (fn: (d: Dec) => number) => rows.reduce((s, d) => s + fn(d), 0);
+  const qc = useQueryClient();
+  const [sel, setSel] = useState<Set<string>>(new Set());
+  const [pdf, setPdf] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const toggleSel = (id: string) => setSel((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  async function pagar(ids: string[], quem: "solicitadora" | "nono", valor: boolean, file: File | null = null) {
+    if (quem === "solicitadora") ids = ids.filter((id) => rows.find((r) => r.id === id)?.reconhecida);
+    if (!ids.length) return toast.error("Nenhuma declaração aplicável.");
+    setBusy(true);
+    try {
+      const patch: Record<string, unknown> = { [`pago_${quem}`]: valor };
+      if (file) {
+        const path = `pagamentos-declaracoes/${quem}/${Date.now()}_${file.name.replace(/[^\w.-]/g, "_")}`;
+        const { error } = await supabase.storage.from("condominio-docs").upload(path, file, { contentType: file.type || "application/pdf" });
+        if (error) throw error;
+        patch[`pago_${quem}_pdf`] = path;
+      }
+      const { error } = await supabase.from("declaracoes").update(patch).in("id", ids);
+      if (error) throw error;
+      toast.success(valor ? `Marcado como pago (${ids.length})` : "Pagamento desmarcado");
+      setSel(new Set()); setPdf(null);
+      qc.invalidateQueries({ queryKey: ["declaracoes"] });
+    } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
+  }
+  async function abrirPdf(path: string) {
+    const { data, error } = await supabase.storage.from("condominio-docs").createSignedUrl(path, 300);
+    if (error) return toast.error(error.message);
+    window.open(data.signedUrl, "_blank");
+  }
+  const PagoCell = ({ d, quem }: { d: Dec; quem: "solicitadora" | "nono" }) => {
+    const pago = quem === "nono" ? d.pago_nono : d.pago_solicitadora;
+    const path = quem === "nono" ? d.pago_nono_pdf : d.pago_solicitadora_pdf;
+    return (
+      <span className="inline-flex items-center gap-1">
+        <button type="button" disabled={busy} onClick={() => pagar([d.id], quem, !pago)} className={`rounded-full border px-2 py-0.5 text-xs font-medium ${pago ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"}`}>{pago ? "Pago" : "Por pagar"}</button>
+        {path ? <button type="button" title="Ver comprovativo" onClick={() => abrirPdf(path)} className="text-primary"><FileText className="h-4 w-4" /></button> : null}
+      </span>
+    );
+  };
   const stats: { label: string; value: string; note?: string }[] = [
     { label: "Feitas", value: String(rows.length), note: rec.length ? `${rec.length} com reconhecimento` : "todas sem reconhecimento" },
     { label: "Faturado (c/ IVA)", value: eur(sum(preco)) },
@@ -313,17 +352,26 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
           <p>Nenhuma declaração feita em {label}.</p>
         </div>
       ) : (
+        <div className="decl-stat flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium">{sel.size ? `${sel.size} selecionada(s)` : "Seleciona declarações para marcar como pagas"}</span>
+          <Input type="file" accept="application/pdf,image/*" className="h-9 w-56" onChange={(e) => setPdf(e.target.files?.[0] ?? null)} aria-label="Comprovativo de pagamento (opcional)" />
+          <Button size="sm" disabled={!sel.size || busy} onClick={() => pagar([...sel], "solicitadora", true, pdf)}>Solicitadora paga</Button>
+          <Button size="sm" variant="secondary" disabled={!sel.size || busy} onClick={() => pagar([...sel], "nono", true, pdf)}>Nono pago</Button>
+          <span className="text-xs text-muted-foreground">PDF opcional</span>
+        </div>
         <div className="decl-map-table">
           <table>
             <thead>
               <tr>
+                <th><input type="checkbox" aria-label="Selecionar todas" checked={sel.size === rows.length} onChange={(e) => setSel(e.target.checked ? new Set(rows.map((r) => r.id)) : new Set())} /></th>
                 <th>Data</th><th>Prédio</th><th>Fração</th><th>Tipo</th>
-                <th className="num">Preço</th><th className="num">Solicitadora (c/ IVA)</th><th className="num">Nono (sem IVA)</th><th className="num">IVA</th>
+                <th className="num">Preço</th><th className="num">Solicitadora (c/ IVA)</th><th className="num">Nono (sem IVA)</th><th className="num">IVA</th><th>Pago solicitadora</th><th>Pago Nono</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((d) => { const e = edMap.get(d.edificio_id); return (
                 <tr key={d.id} className={d.reconhecida ? "row-recognized" : undefined}>
+                  <td><input type="checkbox" aria-label="Selecionar" checked={sel.has(d.id)} onChange={() => toggleSel(d.id)} /></td>
                   <td className="whitespace-nowrap">{new Date(d.feita_em ?? d.created_at).toLocaleDateString("pt-PT")}</td>
                   <td className="font-medium">{e?.identificacao_interna ? `${e.identificacao_interna} — ` : ""}{e?.nome}</td>
                   <td>{d.fracao || "—"}</td>
@@ -332,15 +380,17 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
                   <td className="num">{d.reconhecida ? eur(solicitadora(d)) : "—"}</td>
                   <td className="num">{eur(nono(d))}</td>
                   <td className="num">{eur(dinamico(d) - nono(d))}</td>
+                  <td>{d.reconhecida ? <PagoCell d={d} quem="solicitadora" /> : "—"}</td>
+                  <td><PagoCell d={d} quem="nono" /></td>
                 </tr>); })}
             </tbody>
             <tfoot>
               <tr className="decl-map-total">
-                <td colSpan={4}>Total de {label}</td>
+                <td colSpan={5}>Total de {label}</td>
                 <td className="num">{eur(sum(preco))}</td>
                 <td className="num">{eur(sum(solicitadora))}</td>
                 <td className="num">{eur(sum(nono))}</td>
-                <td className="num">{eur(sum((d) => dinamico(d) - nono(d)))}</td>
+                <td className="num">{eur(sum((d) => dinamico(d) - nono(d)))}</td><td colSpan={2} />
               </tr>
             </tfoot>
           </table>
