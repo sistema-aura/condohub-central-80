@@ -372,13 +372,25 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
       </span>
     );
   };
+  const solTotal = sum((d) => (d.reconhecida ? solicitadora(d) : 0));
+  const solFalta = sum((d) => (d.reconhecida && !d.pago_solicitadora ? solicitadora(d) : 0));
+  const nonoTotal = sum(nono);
+  const nonoFalta = sum((d) => (d.pago_nono ? 0 : nono(d)));
   const stats: { label: string; value: string; note?: string }[] = [
     { label: "Feitas", value: String(rows.length), note: rec.length ? `${rec.length} com reconhecimento` : "todas sem reconhecimento" },
     { label: "Faturado (c/ IVA)", value: eur(sum(preco)) },
-    { label: `A pagar à solicitadora (${rec.length})`, value: eur(sum(solicitadora)) },
-    { label: "Nono (sem IVA)", value: eur(sum(nono)) },
+    { label: "Falta pagar à solicitadora", value: eur(solFalta), note: `pago ${eur(solTotal - solFalta)} de ${eur(solTotal)}` },
+    { label: "Falta pagar à Nono", value: eur(nonoFalta), note: `pago ${eur(nonoTotal - nonoFalta)} de ${eur(nonoTotal)}` },
     { label: "IVA (fica p/ Dinâmico)", value: eur(sum((d) => dinamico(d) - nono(d))) },
   ];
+  function imprimir() {
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+    const linhas = rows.map((d) => { const e = edMap.get(d.edificio_id); return `<tr><td>${new Date(d.feita_em ?? d.created_at).toLocaleDateString("pt-PT")}</td><td>${esc(`${e?.identificacao_interna ? e.identificacao_interna + " — " : ""}${e?.nome ?? ""}`)}</td><td>${esc(d.fracao || "—")}</td><td>${d.reconhecida ? "Reconhecida" : "Sem reconh."}${d.urgente ? " · Urgente" : ""}</td><td class=n>${eur(preco(d))}</td><td class=n>${d.reconhecida ? eur(solicitadora(d)) : "—"}</td><td>${d.reconhecida ? (d.pago_solicitadora ? "Pago" : "Por pagar") : "—"}</td><td class=n>${eur(nono(d))}</td><td>${d.pago_nono ? "Pago" : "Por pagar"}</td></tr>`; }).join("");
+    const w = window.open("", "_blank");
+    if (!w) return toast.error("Permita janelas pop-up para imprimir.");
+    w.document.write(`<html><head><title>Mapa ${esc(label)}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{font-size:20px;margin:0}p{color:#555;margin:4px 0 16px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:5px 7px;text-align:left}th{background:#eef3f9}.n{text-align:right}.r{display:flex;gap:12px;margin:12px 0 18px;flex-wrap:wrap}.r div{border:1px solid #ccc;border-radius:6px;padding:8px 12px;font-size:12px}.r b{display:block;font-size:15px}</style></head><body><h1>Declarações de inexistência de dívida — ${esc(label)}</h1><p>Condomínio Dinâmico · impresso em ${new Date().toLocaleDateString("pt-PT")}</p><div class=r><div>Feitas<b>${rows.length}</b></div><div>Faturado<b>${eur(sum(preco))}</b></div><div>Solicitadora: pago / falta<b>${eur(solTotal - solFalta)} / ${eur(solFalta)}</b></div><div>Nono: pago / falta<b>${eur(nonoTotal - nonoFalta)} / ${eur(nonoFalta)}</b></div></div><table><thead><tr><th>Data</th><th>Prédio</th><th>Fração</th><th>Tipo</th><th class=n>Preço</th><th class=n>Solicitadora</th><th>Pag. solic.</th><th class=n>Nono</th><th>Pag. Nono</th></tr></thead><tbody>${linhas || "<tr><td colspan=9>Sem declarações neste mês.</td></tr>"}</tbody></table><script>onload=()=>print()</script></body></html>`);
+    w.document.close();
+  }
   return (
     <div className="space-y-5">
       <div className="decl-map-head">
@@ -390,7 +402,10 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
             <Button size="icon" variant="ghost" className="decl-map-step" aria-label="Mês seguinte" onClick={() => shift(1)}><ChevronRight className="h-4 w-4" /></Button>
           </div>
         </div>
-        <Input type="month" className="decl-map-input w-40" value={mes} onChange={(e) => { if (e.target.value) setMes(e.target.value); }} aria-label="Escolher mês" />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={imprimir}><FileText className="h-4 w-4" /> Imprimir mês</Button>
+          <Input type="month" className="decl-map-input w-40" value={mes} onChange={(e) => { if (e.target.value) setMes(e.target.value); }} aria-label="Escolher mês" />
+        </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((s) => (
