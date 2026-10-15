@@ -13,7 +13,6 @@ export function telegramMessages(text: string, baseUrl: string, buildingId?: str
   if (/declaraç/i.test(text)) buttons.push(button("📝 Ver declarações", "/declaracoes"));
   if (/agenda|tarefa/i.test(text)) buttons.push(button("📋 Abrir agenda", "/agenda"));
   if (/vistoria/i.test(text)) buttons.push(button("🔧 Ver vistorias", "/vistorias"));
-  if (/email/i.test(text)) buttons.push(button("✉️ Ver emails", "/emails"));
   if (!buttons.length) buttons.push(button("🏠 Abrir CondoHub", "/dashboard"));
 
   // Split on paragraph/line boundaries, without dropping tasks or splitting emoji.
