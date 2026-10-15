@@ -131,6 +131,7 @@ export function AssembleiaDialog({ initial, edificios, onClose, onSaved }: Props
     } catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível cancelar."); }
     finally { setBusy(false); }
   };
+  if (despesa) return <DespesaDialog edificioId={despesa.edificio} assembleiaId={despesa.id} onDone={onClose} />;
   return <Sheet open onOpenChange={(open) => { if (!open && !busy) onClose(); }}>
     <SheetContent side="right" resizable resizeKey="assembleias" aria-describedby={undefined} onEscapeKeyDown={(e) => { if (busy) e.preventDefault(); }} onPointerDownOutside={(e) => { if (busy) e.preventDefault(); }} className="assembly-sheet flex h-dvh w-full flex-col gap-0 rounded-none border-meeting-sheet-border bg-meeting-sheet-surface p-0 sm:max-w-[680px] [&>button]:right-6 [&>button]:top-8">
       <SheetHeader className="shrink-0 border-b border-meeting-sheet-border px-6 py-7 pr-14 text-left sm:px-10 sm:py-8">

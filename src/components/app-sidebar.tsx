@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Building2, LayoutDashboard, AlertTriangle, Users, LogOut, FileCheck, CalendarDays, Mail, ListTodo, ListChecks, Wrench, FileSignature } from "lucide-react";
+import { Building2, LayoutDashboard, AlertTriangle, Users, LogOut, FileCheck, CalendarDays, Mail, ListTodo, ListChecks, Wrench, FileSignature, Receipt } from "lucide-react";
 
 import logoMark from "@/assets/logo-mark.png.asset.json";
 import { PESSOAS_EQUIPA, usePessoaAtual } from "@/lib/pessoa-atual";
@@ -36,6 +36,7 @@ export function AppSidebar() {
     { title: "Vistorias", url: "/vistorias", icon: Wrench },
     { title: "Declarações", url: "/declaracoes", icon: FileCheck },
     { title: "Assembleias", url: "/assembleias", icon: CalendarDays },
+    { title: "Despesas", url: "/despesas", icon: Receipt },
     { title: "Propostas", url: "/propostas", icon: FileSignature },
     { title: "Emails", url: "/emails", icon: Mail },
     { title: "Utilizadores", url: "/utilizadores", icon: Users },
