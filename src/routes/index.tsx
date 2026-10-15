@@ -32,7 +32,7 @@ const plataformas: Plataforma[] = [
     to: "/auth",
     icon: Building2,
     title: "Condomínio Dinâmico",
-    desc: "Edifícios, documentos, declarações, assembleias, agenda, vistorias, emails e propostas.",
+    desc: "Edifícios, documentos, declarações, assembleias, agenda, vistorias e propostas.",
     iconeCls: "bg-primary/10 text-primary",
     acaoCls: "text-primary",
     botao: true,

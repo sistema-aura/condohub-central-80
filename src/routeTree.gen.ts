@@ -19,7 +19,6 @@ import { Route as AuthenticatedCheckRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDeclaracoesRouteImport } from './routes/_authenticated/declaracoes'
 import { Route as AuthenticatedDespesasRouteImport } from './routes/_authenticated/despesas'
-import { Route as AuthenticatedEmailsRouteImport } from './routes/_authenticated/emails'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedUtilizadoresRouteImport } from './routes/_authenticated/utilizadores'
@@ -80,11 +79,6 @@ const AuthenticatedDespesasRoute = AuthenticatedDespesasRouteImport.update({
   path: '/despesas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedEmailsRoute = AuthenticatedEmailsRouteImport.update({
-  id: '/emails',
-  path: '/emails',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
@@ -140,7 +134,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/declaracoes': typeof AuthenticatedDeclaracoesRoute
   '/despesas': typeof AuthenticatedDespesasRoute
-  '/emails': typeof AuthenticatedEmailsRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
@@ -160,7 +153,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/declaracoes': typeof AuthenticatedDeclaracoesRoute
   '/despesas': typeof AuthenticatedDespesasRoute
-  '/emails': typeof AuthenticatedEmailsRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/utilizadores': typeof AuthenticatedUtilizadoresRoute
@@ -182,7 +174,6 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/declaracoes': typeof AuthenticatedDeclaracoesRoute
   '/_authenticated/despesas': typeof AuthenticatedDespesasRoute
-  '/_authenticated/emails': typeof AuthenticatedEmailsRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/utilizadores': typeof AuthenticatedUtilizadoresRoute
@@ -204,7 +195,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/declaracoes'
     | '/despesas'
-    | '/emails'
     | '/inicio'
     | '/propostas'
     | '/utilizadores'
@@ -224,7 +214,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/declaracoes'
     | '/despesas'
-    | '/emails'
     | '/inicio'
     | '/propostas'
     | '/utilizadores'
@@ -245,7 +234,6 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/declaracoes'
     | '/_authenticated/despesas'
-    | '/_authenticated/emails'
     | '/_authenticated/inicio'
     | '/_authenticated/propostas'
     | '/_authenticated/utilizadores'
@@ -336,13 +324,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDespesasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/emails': {
-      id: '/_authenticated/emails'
-      path: '/emails'
-      fullPath: '/emails'
-      preLoaderRoute: typeof AuthenticatedEmailsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/inicio': {
       id: '/_authenticated/inicio'
       path: '/inicio'
@@ -410,7 +391,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDeclaracoesRoute: typeof AuthenticatedDeclaracoesRoute
   AuthenticatedDespesasRoute: typeof AuthenticatedDespesasRoute
-  AuthenticatedEmailsRoute: typeof AuthenticatedEmailsRoute
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedUtilizadoresRoute: typeof AuthenticatedUtilizadoresRoute
@@ -427,7 +407,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDeclaracoesRoute: AuthenticatedDeclaracoesRoute,
   AuthenticatedDespesasRoute: AuthenticatedDespesasRoute,
-  AuthenticatedEmailsRoute: AuthenticatedEmailsRoute,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedUtilizadoresRoute: AuthenticatedUtilizadoresRoute,
