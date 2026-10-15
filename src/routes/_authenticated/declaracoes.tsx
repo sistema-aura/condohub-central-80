@@ -33,6 +33,58 @@ type ReconhecimentoEstado = "por_enviar" | "na_solicitadora" | "no_escritorio";
 const reconhecimentoLabels: Record<ReconhecimentoEstado, string> = { por_enviar: "Por enviar à solicitadora", na_solicitadora: "Na solicitadora", no_escritorio: "Já no escritório" };
 type Dec = { id: string; edificio_id: string; fracao: string | null; proprietario: string | null; nif: string | null; urgente: boolean; reconhecida: boolean; reconhecimento_estado: ReconhecimentoEstado; feita: boolean; feita_em: string | null; observacoes: string | null; created_at: string; quota_mensal: string | null; fundo_reserva: string | null; quota_seguro: string | null; quota_extraordinaria: string | null; pago_solicitadora: boolean; pago_solicitadora_pdf: string | null; pago_nono: boolean; pago_nono_pdf: string | null; pdf_path: string | null; pdf_nome: string | null };
 
+function DecPdf({ dec, onDone }: { dec: Dec; onDone: () => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function abrir() {
+    if (!dec.pdf_path) return;
+    const { data, error } = await supabase.storage.from("condominio-docs").createSignedUrl(dec.pdf_path, 300);
+    if (error) return toast.error(error.message);
+    window.open(data.signedUrl, "_blank");
+  }
+  async function escolher(file: File | null) {
+    if (!file) return;
+    if (file.type && file.type !== "application/pdf") return toast.error("Escolhe um ficheiro PDF.");
+    setBusy(true);
+    const path = `${dec.edificio_id}/declaracoes/${crypto.randomUUID()}.pdf`;
+    const { error: upErr } = await supabase.storage.from("condominio-docs").upload(path, file, { contentType: "application/pdf" });
+    if (upErr) { setBusy(false); return toast.error(upErr.message); }
+    const { error } = await supabase.from("declaracoes").update({ pdf_path: path, pdf_nome: file.name.slice(0, 200) }).eq("id", dec.id);
+    if (error) { await supabase.storage.from("condominio-docs").remove([path]); setBusy(false); return toast.error(error.message); }
+    if (dec.pdf_path) await supabase.storage.from("condominio-docs").remove([dec.pdf_path]);
+    setBusy(false);
+    toast.success("PDF guardado.");
+    onDone();
+  }
+  async function remover() {
+    if (!dec.pdf_path || !confirm("Remover o PDF digitalizado?")) return;
+    setBusy(true);
+    await supabase.from("declaracoes").update({ pdf_path: null, pdf_nome: null }).eq("id", dec.id);
+    await supabase.storage.from("condominio-docs").remove([dec.pdf_path]);
+    setBusy(false);
+    onDone();
+  }
+
+  return (
+    <div className="decl-pdf">
+      <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={(e) => { void escolher(e.target.files?.[0] ?? null); e.target.value = ""; }} />
+      {dec.pdf_path ? (
+        <div className="flex items-center gap-2 rounded-md border p-2">
+          <FileText className="size-4 shrink-0 text-primary" />
+          <button type="button" className="min-w-0 flex-1 truncate text-left text-sm hover:underline" onClick={abrir} title="Abrir PDF digitalizado">{dec.pdf_nome ?? "Declaração digitalizada.pdf"}</button>
+          <Button type="button" variant="ghost" size="icon" onClick={abrir} title="Abrir PDF" aria-label="Abrir PDF digitalizado"><ExternalLink className="size-4" /></Button>
+          <Button type="button" variant="ghost" size="icon" disabled={busy} onClick={remover} title="Remover PDF" aria-label="Remover PDF digitalizado"><Trash2 className="size-4" /></Button>
+        </div>
+      ) : (
+        <Button type="button" variant="outline" size="sm" className="w-full" disabled={busy} onClick={() => inputRef.current?.click()}>
+          {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}Juntar PDF digitalizado
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function Page() {
   const qc = useQueryClient();
   const eds = useQuery({
