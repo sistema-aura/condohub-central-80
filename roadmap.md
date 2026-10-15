@@ -18,3 +18,6 @@
 - [x] Abrir e fechar a pasta com as declarações lá dentro.
 - [x] Verificar abertura, fecho e leitura dos nomes.
 - [x] Retirar os valores em euros das pastas e das declarações dentro delas (só o mapa do mês mostra preços).
+
+## Limpeza
+- [x] Retirar a página Emails do menu, dos botões do Telegram e da descrição inicial.
