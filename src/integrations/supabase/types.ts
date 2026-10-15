@@ -451,6 +451,100 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_confirmations: {
+        Row: {
+          after_row: Json | null
+          before_row: Json
+          chat_id: number
+          entity_id: string
+          expires_at: string
+          id: string
+          kind: string
+          undone_at: string | null
+          used_at: string | null
+        }
+        Insert: {
+          after_row?: Json | null
+          before_row: Json
+          chat_id: number
+          entity_id: string
+          expires_at?: string
+          id?: string
+          kind: string
+          undone_at?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          after_row?: Json | null
+          before_row?: Json
+          chat_id?: number
+          entity_id?: string
+          expires_at?: string
+          id?: string
+          kind?: string
+          undone_at?: string | null
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telegram_confirmations_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_config"
+            referencedColumns: ["chat_id"]
+          },
+        ]
+      }
+      telegram_pairings: {
+        Row: {
+          expires_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          expires_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          expires_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      telegram_reminders: {
+        Row: {
+          chat_id: number
+          due_at: string
+          entity_id: string
+          kind: string
+          lease_until: string | null
+        }
+        Insert: {
+          chat_id: number
+          due_at: string
+          entity_id: string
+          kind: string
+          lease_until?: string | null
+        }
+        Update: {
+          chat_id?: number
+          due_at?: string
+          entity_id?: string
+          kind?: string
+          lease_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telegram_reminders_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_config"
+            referencedColumns: ["chat_id"]
+          },
+        ]
+      }
       vistorias: {
         Row: {
           avisar_pessoas: string[]
@@ -507,6 +601,27 @@ export type Database = {
     }
     Functions: {
       check_avisos_token: { Args: { _token: string }; Returns: boolean }
+      telegram_claim_reminders: {
+        Args: never
+        Returns: {
+          chat_id: number
+          due_at: string
+          entity_id: string
+          kind: string
+          lease_until: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "telegram_reminders"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      telegram_confirm: {
+        Args: { _chat: number; _id: string; _undo?: boolean }
+        Returns: string
+      }
+      telegram_schedule_reminders: { Args: never; Returns: undefined }
     }
     Enums: {
       tipo_documento:
