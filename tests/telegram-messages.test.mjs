@@ -38,7 +38,7 @@ test("summary buttons cover every included section and building links target act
     "id-123",
   );
   assert.deepEqual(
-    m.reply_markup.inline_keyboard.map((row) => new URL(row[0].url).pathname),
+    m.reply_markup.inline_keyboard.filter((row) => "url" in row[0]).map((row) => new URL(row[0].url).pathname),
     ["/edificios/id-123", "/assembleias", "/declaracoes", "/agenda", "/vistorias"],
   );
   assert.throws(() => telegramMessages("Teste", "http://example.com"));

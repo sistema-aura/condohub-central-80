@@ -150,11 +150,33 @@ npm run dev
 - Reuniões dos próximos dois dias mantêm avisos próprios (hoje/amanhã/em breve).
 - Cada execução da agenda reúne tarefas, vistorias e declarações por destinatário.
 - Textos longos são divididos em partes numeradas, sem eliminar registos.
-- Botões abrem páginas autenticadas do CondoHub; não alteram estados nem adiam tarefas.
+- «Gerir pendências» abre o menu interativo no Telegram. /menu e /start também o abrem.
+- Convocatórias, declarações, tarefas e vistorias têm confirmação antes de concluir,
+  desfazer durante 10 minutos e lembretes pessoais para daqui a 1 ou 24 horas.
+- Alterações concorrentes impedem confirmar/desfazer uma versão antiga do registo.
 - `TELEGRAM_APP_URL` é opcional, apenas no servidor, e deve ser um endereço HTTPS.
   Por omissão os botões apontam para `https://condohub-central-80.lovable.app`.
 - Preservam-se o gateway existente, os horários e os cabeçalhos do cron.
-  Não é necessário configurar webhook para estes botões de navegação.
+  O webhook usa um segredo derivado no servidor; apenas chats privados previamente
+  ligados podem consultar ou alterar dados. Novas ligações usam links de utilização
+  única, gerados por um utilizador autenticado e válidos durante 10 minutos.
 - Após disponibilizar a versão no ambiente usado pelo cron, o botão de teste na
   página Assembleias permite verificar a formatação e os links no Telegram.
 - Testes locais sem envio de mensagens: `node --test tests/telegram-*.test.mjs` (Node 24).
+
+### Ativação dos botões interativos
+
+1. Aplicar `drizzle/migrations/0019_telegram_interativo.sql` à base de dados.
+2. Publicar a versão com `/api/public/telegram/webhook` no domínio de `TELEGRAM_APP_URL`.
+3. Em Assembleias → Telegram, carregar em **Ativar botões**. Regista o webhook e
+   instala o cron de lembretes (cada minuto), reutilizando o segredo existente.
+   Em alternativa, a chamada autenticada de cron com `x-modo: configurar-botoes`
+   executa a mesma ativação, sem enviar mensagens.
+4. Enviar `/menu` ao bot. Para ligar outra pessoa, usar **Ligar o meu Telegram**
+   e abrir a ligação pessoal. O antigo getUpdates não é usado com o webhook ativo.
+
+Os lembretes são verificados a cada minuto e deixam de ser enviados se o assunto
+já estiver tratado. Não suspendem os resumos gerais. Falhas temporárias são
+repetidas após a reserva de dois minutos expirar; como em qualquer envio externo,
+uma falha após a entrega mas antes da confirmação pode causar um envio repetido.
+Os botões antigos de navegação continuam a abrir o site.

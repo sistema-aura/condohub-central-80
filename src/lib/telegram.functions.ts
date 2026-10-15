@@ -3,31 +3,17 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 import { telegramMessages } from "@/lib/telegram-messages";
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
-
 async function gatewayCall<T>(path: string, body?: unknown): Promise<T> {
-  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-  const TELEGRAM_API_KEY = process.env.TELEGRAM_API_KEY;
-  if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY) {
-    throw new Error("O bot do Telegram não está configurado");
-  }
-  const res = await fetch(`${GATEWAY_URL}${path}`, {
-    method: body ? "POST" : "GET",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": TELEGRAM_API_KEY,
-      ...(body ? { "Content-Type": "application/json" } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(`Telegram devolveu erro [${res.status}]: ${text}`);
-  }
-  const json = JSON.parse(text) as { ok: boolean; result?: T; description?: string };
-  if (!json.ok) throw new Error(json.description ?? "Erro desconhecido do Telegram");
-  return json.result as T;
+  const { gatewayCall } = await import("@/lib/telegram-gateway.server");
+  return gatewayCall<T>(path, body);
 }
+
+export const ativarBotoesTelegram = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { activateTelegram } = await import("@/lib/telegram-bot.server");
+    return activateTelegram();
+  });
 
 export const getTelegramStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -43,25 +29,14 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
 
 export const ligarTelegram = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => {
+  .handler(async ({ context }) => {
+    const { activateTelegram } = await import("@/lib/telegram-bot.server");
+    await activateTelegram();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    type Update = { message?: { chat: { id: number; type: string; first_name?: string; title?: string } } };
-    const updates = await gatewayCall<Update[]>("/getUpdates?limit=100");
-    const map = new Map<number, { id: number; first_name?: string }>();
-    for (const u of updates) { const c = u.message?.chat; if (c?.type === "private") map.set(c.id, c); }
-    const chats = [...map.values()];
-    if (!chats.length) {
-      throw new Error("Ainda não recebi nenhuma mensagem. Envia /start ao bot no Telegram e tenta outra vez.");
-    }
-    const { error } = await supabaseAdmin
-      .from("telegram_config")
-      .upsert(chats.map((c) => ({ chat_id: c.id, chat_title: c.first_name ?? null })), { onConflict: "chat_id" });
-    if (error) throw new Error(error.message);
-    for (const chat of chats) await gatewayCall("/sendMessage", {
-      chat_id: chat.id,
-      text: "✅ Avisos do Condomínio Dinâmico ligados!\nVais receber aqui os avisos das assembleias (convocatória por enviar e reunião em breve).",
-    });
-    return { ok: true, title: chats.map((c) => c.first_name ?? "?").join(", ") };
+    const { data, error } = await (supabaseAdmin as import("@supabase/supabase-js").SupabaseClient<any>)
+      .from("telegram_pairings").insert({ user_id: context.userId }).select("id").single();
+    if (error) throw new Error("Não foi possível criar a ligação ao Telegram.");
+    return { url: `https://t.me/CDinamico_avisosbot?start=${data.id}` };
   });
 
 export const testarTelegram = createServerFn({ method: "POST" })

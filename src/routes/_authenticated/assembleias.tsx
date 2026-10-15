@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Plus, Bell, Send, Clock3, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getTelegramStatus, ligarTelegram, testarTelegram } from "@/lib/telegram.functions";
+import { getTelegramStatus, ligarTelegram, testarTelegram, ativarBotoesTelegram } from "@/lib/telegram.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -31,14 +31,15 @@ function Page() {
 
   const [tgOpen, setTgOpen] = useState(false);
   const [tgBusy, setTgBusy] = useState(false);
+  const [tgLink, setTgLink] = useState<string | null>(null);
   const tgStatus = useQuery({ queryKey: ["telegram-status"], queryFn: getTelegramStatus });
   const ligarTg = async () => {
     setTgBusy(true);
     try {
-      await ligarTelegram();
+      const result = await ligarTelegram();
+      setTgLink(result.url);
       await qc.invalidateQueries({ queryKey: ["telegram-status"] });
-      toast.success("Avisos ligados! Enviámos uma mensagem de teste ao Telegram.");
-      setTgOpen(false);
+      toast.success("Abra a ligação abaixo e carregue em Iniciar no Telegram.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao ligar o Telegram");
     } finally {
@@ -46,6 +47,12 @@ function Page() {
     }
   };
 
+  const ativarTg = async () => {
+    setTgBusy(true);
+    try { await ativarBotoesTelegram(); toast.success("Botões ativados! Envie /menu ao bot no Telegram."); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Erro ao ativar os botões"); }
+    finally { setTgBusy(false); }
+  };
   const testarTg = async () => {
     setTgBusy(true);
     try { const r = await testarTelegram(); toast.success(`Aviso de teste enviado${r.title ? " para " + r.title : ""}. Confirma no Telegram.`); }
@@ -128,19 +135,22 @@ function Page() {
           <DialogHeader><DialogTitle>Avisos no Telegram</DialogTitle></DialogHeader>
           <div className="space-y-3 text-sm">
             <ol className="list-decimal pl-5 space-y-1">
-              <li>Abre o bot <b>@CDinamico_avisosbot</b> no Telegram e envia <b>/start</b>.</li>
-              <li>Volta aqui e carrega em «Ligar avisos».</li>
+              <li>Carregue em «Ligar o meu Telegram» para gerar uma ligação pessoal, válida durante 10 minutos.</li>
+              <li>Abra essa ligação e carregue em <b>Iniciar</b> no Telegram.</li>
             </ol>
+            {tgLink && <a href={tgLink} target="_blank" rel="noreferrer" className="block rounded-lg border p-3 font-medium text-primary underline">Abrir ligação pessoal no Telegram (10 minutos)</a>}
             {tgStatus.data?.chat && (
               <p>Ligado a: <b>{tgStatus.data.chat.title ?? `chat ${tgStatus.data.chat.chatId}`}</b></p>
             )}
             <p className="text-muted-foreground">
               Recebes no Telegram: convocatórias por enviar para reuniões nos próximos 15 dias e reuniões em breve (2 dias antes). Horários: 10:30 e 15:30.
             </p>
-            <div className="flex gap-2 justify-end">
+            <p className="text-muted-foreground">No Telegram, envie /menu para consultar pendências, confirmar conclusões e pedir lembretes para daqui a 1 ou 24 horas. Pode desfazer uma conclusão durante 10 minutos.</p>
+            <div className="flex flex-wrap gap-2 justify-end">
               <Button variant="outline" onClick={() => setTgOpen(false)}>Fechar</Button>
               {tgStatus.data?.chat && <Button variant="outline" disabled={tgBusy} onClick={testarTg}>Enviar aviso de teste</Button>}
-              <Button disabled={tgBusy} onClick={ligarTg}>{tgBusy ? "A ligar…" : "Ligar avisos"}</Button>
+              {tgStatus.data?.chat && <Button variant="outline" disabled={tgBusy} onClick={ativarTg}>Ativar botões</Button>}
+              <Button disabled={tgBusy} onClick={ligarTg}>{tgBusy ? "A ligar…" : "Ligar o meu Telegram"}</Button>
             </div>
           </div>
         </DialogContent>

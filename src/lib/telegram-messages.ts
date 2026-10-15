@@ -1,3 +1,5 @@
+import { cb } from "./telegram-interactions.ts";
+
 /** Pure message formatting. Never accept Telegram markup from database fields. */
 export function telegramMessages(text: string, baseUrl: string, buildingId?: string) {
   const root = new URL(baseUrl);
@@ -42,7 +44,7 @@ export function telegramMessages(text: string, baseUrl: string, buildingId?: str
       text: body,
       entities,
       link_preview_options: { is_disabled: true },
-      reply_markup: { inline_keyboard: buttons.map((b) => [b]) },
+      reply_markup: { inline_keyboard: [...buttons.map((b) => [b]), [cb("✅ Gerir pendências", "menu")]] },
     };
   });
 }

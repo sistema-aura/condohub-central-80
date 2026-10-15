@@ -36,6 +36,15 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
         const { data: valid, error: rpcError } = await supabaseAdmin.rpc("check_avisos_token", { _token: token });
         if (rpcError || valid !== true) return new Response("Unauthorized", { status: 401 });
 
+        if (request.headers.get("x-modo") === "lembretes") {
+          const { sendDueReminders } = await import("@/lib/telegram-bot.server");
+          return Response.json(await sendDueReminders());
+        }
+        if (request.headers.get("x-modo") === "configurar-botoes") {
+          const { activateTelegram } = await import("@/lib/telegram-bot.server");
+          return Response.json(await activateTelegram());
+        }
+
         // Chats ligados (todos recebem)
         const { data: cfgs } = await supabaseAdmin.from("telegram_config").select("chat_id,chat_title");
         const chats = (cfgs ?? []).map((c) => c.chat_id as number);
