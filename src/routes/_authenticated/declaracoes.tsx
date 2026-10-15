@@ -352,6 +352,7 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
           <p>Nenhuma declaração feita em {label}.</p>
         </div>
       ) : (
+        <>
         <div className="decl-stat flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium">{sel.size ? `${sel.size} selecionada(s)` : "Seleciona declarações para marcar como pagas"}</span>
           <Input type="file" accept="application/pdf,image/*" className="h-9 w-56" onChange={(e) => setPdf(e.target.files?.[0] ?? null)} aria-label="Comprovativo de pagamento (opcional)" />
@@ -395,6 +396,7 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
             </tfoot>
           </table>
         </div>
+        </>
       )}
     </div>
   );
