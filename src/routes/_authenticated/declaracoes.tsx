@@ -184,6 +184,7 @@ function Page() {
                   <div className="text-sm font-semibold">{d.fracao ? `Fração ${d.fracao}` : "Sem fração"}</div>
                   <div className="mt-0.5 truncate text-[11px] text-muted-foreground">Feita em {fmt(d.feita_em ?? d.created_at)} · {d.proprietario || "—"}{d.nif ? ` · NIF ${d.nif}` : ""}</div>
                   {d.observacoes ? <p className="decl-note"><StickyNote className="mt-px h-3.5 w-3.5 shrink-0" /><span>{d.observacoes}</span></p> : null}
+                  <div className="mt-2.5"><DecPdf dec={d} onDone={refresh} /></div>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap gap-1.5">
                       <Button variant="ghost" aria-pressed={d.urgente} className={`decl-pill${d.urgente ? " decl-pill--urgent" : ""}`} onClick={() => upd(d.id, { urgente: !d.urgente })}>
