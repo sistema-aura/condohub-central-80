@@ -120,6 +120,13 @@
       "when": 1791906640224,
       "tag": "0016_declaracoes_acompanhamento_reconhecimento",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792056834676,
+      "tag": "0017_declaracoes_pagamentos",
+      "breakpoints": true
     }
   ]
 }

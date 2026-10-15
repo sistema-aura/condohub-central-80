@@ -127,6 +127,10 @@ export type Database = {
           id: string
           nif: string | null
           observacoes: string | null
+          pago_nono: boolean
+          pago_nono_pdf: string | null
+          pago_solicitadora: boolean
+          pago_solicitadora_pdf: string | null
           proprietario: string | null
           quota_extraordinaria: string | null
           quota_mensal: string | null
@@ -147,6 +151,10 @@ export type Database = {
           id?: string
           nif?: string | null
           observacoes?: string | null
+          pago_nono?: boolean
+          pago_nono_pdf?: string | null
+          pago_solicitadora?: boolean
+          pago_solicitadora_pdf?: string | null
           proprietario?: string | null
           quota_extraordinaria?: string | null
           quota_mensal?: string | null
@@ -167,6 +175,10 @@ export type Database = {
           id?: string
           nif?: string | null
           observacoes?: string | null
+          pago_nono?: boolean
+          pago_nono_pdf?: string | null
+          pago_solicitadora?: boolean
+          pago_solicitadora_pdf?: string | null
           proprietario?: string | null
           quota_extraordinaria?: string | null
           quota_mensal?: string | null
