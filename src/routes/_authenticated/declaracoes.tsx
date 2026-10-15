@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Printer, Check, Undo2, Trash2, Folder, FolderOpen, X, FileText, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck, Upload, ExternalLink, Loader2 } from "lucide-react";
+import { Plus, Printer, Check, Undo2, Trash2, Folder, FolderOpen, X, FileText, Pencil, StickyNote, Send, Building2, Clock3, ChartNoAxesCombined, BadgeCheck, ChevronLeft, ChevronRight, CalendarCheck, Upload, ExternalLink, Loader2, Wallet, Paperclip } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -364,8 +364,10 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
     const pago = quem === "nono" ? d.pago_nono : d.pago_solicitadora;
     const path = quem === "nono" ? d.pago_nono_pdf : d.pago_solicitadora_pdf;
     return (
-      <span className="inline-flex items-center gap-1">
-        <button type="button" disabled={busy} onClick={() => pagar([d.id], quem, !pago)} className={`rounded-full border px-2 py-0.5 text-xs font-medium ${pago ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"}`}>{pago ? "Pago" : "Por pagar"}</button>
+      <span className="inline-flex items-center gap-1.5">
+        <button type="button" disabled={busy} onClick={() => pagar([d.id], quem, !pago)} className={`decl-pay-pill ${pago ? "is-paid" : ""}`} title={pago ? "Clique para desmarcar" : "Clique para marcar como pago"}>
+          {pago ? <Check className="h-3 w-3" /> : null}{pago ? "Pago" : "Por pagar"}
+        </button>
         {path ? <button type="button" title="Ver comprovativo" onClick={() => abrirPdf(path)} className="text-primary"><FileText className="h-4 w-4" /></button> : null}
       </span>
     );
@@ -406,12 +408,26 @@ function Mapa({ decs, edMap }: { decs: Dec[]; edMap: Map<string, Ed> }) {
         </div>
       ) : (
         <>
-        <div className="decl-stat flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium">{sel.size ? `${sel.size} selecionada(s)` : "Seleciona declarações para marcar como pagas"}</span>
-          <Input type="file" accept="application/pdf,image/*" className="h-9 w-56" onChange={(e) => setPdf(e.target.files?.[0] ?? null)} aria-label="Comprovativo de pagamento (opcional)" />
-          <Button size="sm" disabled={!sel.size || busy} onClick={() => pagar([...sel], "solicitadora", true, pdf)}>Solicitadora paga</Button>
-          <Button size="sm" variant="secondary" disabled={!sel.size || busy} onClick={() => pagar([...sel], "nono", true, pdf)}>Nono pago</Button>
-          <span className="text-xs text-muted-foreground">PDF opcional</span>
+        <div className="decl-pay-bar">
+          <div className="decl-pay-info">
+            <span className="decl-pay-icon"><Wallet className="h-4 w-4" /></span>
+            <div>
+              <p className="decl-pay-title">Marcar como pago</p>
+              <p className="decl-pay-sub">{sel.size ? `${sel.size} declaração(ões) selecionada(s)` : "Seleciona as declarações na tabela abaixo"}</p>
+            </div>
+          </div>
+          <div className="decl-pay-right">
+            <label className="decl-pay-file" data-has={pdf ? "1" : "0"}>
+              <Paperclip className="h-3.5 w-3.5 shrink-0" />
+              <span>{pdf ? pdf.name : "Comprovativo (opcional)"}</span>
+              {pdf ? <span role="button" tabIndex={0} className="decl-pay-file-x" title="Remover ficheiro" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPdf(null); }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setPdf(null); } }}><X className="h-3.5 w-3.5" /></span> : null}
+              <input type="file" accept="application/pdf,image/*" hidden onChange={(e) => setPdf(e.target.files?.[0] ?? null)} aria-label="Comprovativo de pagamento (opcional)" />
+            </label>
+            <div className="decl-pay-actions">
+              <Button size="sm" disabled={!sel.size || busy} onClick={() => pagar([...sel], "solicitadora", true, pdf)}><Building2 className="h-3.5 w-3.5" /> Solicitadora paga</Button>
+              <Button size="sm" variant="secondary" disabled={!sel.size || busy} onClick={() => pagar([...sel], "nono", true, pdf)}><Wallet className="h-3.5 w-3.5" /> Nono pago</Button>
+            </div>
+          </div>
         </div>
         <div className="decl-map-table">
           <table>
