@@ -204,6 +204,63 @@ export type Database = {
           },
         ]
       }
+      despesas_admin: {
+        Row: {
+          assembleia_id: string | null
+          created_at: string
+          created_by: string | null
+          data: string
+          descricao: string | null
+          edificio_id: string
+          id: string
+          itens: Json
+          pago: boolean
+          pago_em: string | null
+          total: number
+        }
+        Insert: {
+          assembleia_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: string
+          descricao?: string | null
+          edificio_id: string
+          id?: string
+          itens?: Json
+          pago?: boolean
+          pago_em?: string | null
+          total?: number
+        }
+        Update: {
+          assembleia_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: string
+          descricao?: string | null
+          edificio_id?: string
+          id?: string
+          itens?: Json
+          pago?: boolean
+          pago_em?: string | null
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "despesas_admin_assembleia_id_fkey"
+            columns: ["assembleia_id"]
+            isOneToOne: false
+            referencedRelation: "assembleias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "despesas_admin_edificio_id_fkey"
+            columns: ["edificio_id"]
+            isOneToOne: false
+            referencedRelation: "edificios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos: {
         Row: {
           avisada_validade: boolean
