@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Receipt, Check, Trash2, Building2, Wallet, CircleDollarSign, ChevronDown } from "lucide-react";
+import { Plus, Receipt, Check, Trash2, Building2, Wallet, CircleDollarSign, ChevronDown, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +51,44 @@ function Page() {
     if (error) return toast.error(error.message); refresh();
   };
 
+  const imprimir = (g: { id: string; ed?: Ed; itens: Desp[] }) => {
+    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const soma = g.itens.reduce((s, d) => s + Number(d.total), 0);
+    const linhas = g.itens.map((d) => {
+      const itens = lerItens(d.itens).map((i) => `${i.qtd} × ${esc(i.label)} (${eur(i.qtd * i.preco)})`).join(" · ");
+      return `<tr><td class="dt">${new Date(d.data + "T00:00:00").toLocaleDateString("pt-PT")}</td><td>${esc(d.descricao ?? "Despesa administrativas")}${itens ? `<span class="it">${itens}</span>` : ""}</td><td class="pg ${d.pago ? "ok" : "pen"}">${d.pago ? "Pago" : "Por pagar"}</td><td class="vl">${eur(Number(d.total))}</td></tr>`;
+    }).join("");
+    const w = window.open("", "_blank", "width=920,height=720");
+    if (!w) { toast.error("Permite janelas novas (pop-ups) no navegador para imprimir."); return; }
+    w.document.write(`<!doctype html><html lang="pt"><head><meta charset="utf-8"><title>Despesas ${esc(g.ed?.identificacao_interna ?? "")} ${esc(g.ed?.nome ?? "")}</title><style>
+      *{box-sizing:border-box} body{font-family:'Segoe UI',Arial,sans-serif;color:#1a1a1a;margin:32px}
+      .top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1a4d8f;padding-bottom:10px;margin-bottom:6px}
+      .brand{font-size:13px;font-weight:700;color:#1a4d8f;text-transform:uppercase;letter-spacing:.08em}
+      h1{font-size:19px;margin:8px 0 2px}
+      .sub{font-size:12px;color:#666;margin-bottom:18px}
+      table{width:100%;border-collapse:collapse;font-size:12px}
+      th{text-align:left;background:#eef4fb;color:#1a4d8f;padding:7px 9px;border-bottom:1px solid #c9d9ec;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+      td{padding:8px 9px;border-bottom:1px solid #e6ebf2;vertical-align:top}
+      .dt{white-space:nowrap;color:#555;width:72px}
+      .it{display:block;font-size:11px;color:#888;margin-top:3px}
+      .pg{white-space:nowrap;font-weight:600}
+      .ok{color:#177a4b}.pen{color:#b45309}
+      .vl{white-space:nowrap;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+      .tot td{border-top:2px solid #1a4d8f;border-bottom:none;font-weight:700;font-size:13px;padding-top:10px}
+      .foot{margin-top:26px;font-size:10.5px;color:#999;border-top:1px solid #e6ebf2;padding-top:8px}
+      @media print{body{margin:12mm}}
+    </style></head><body>
+      <div class="top"><div><div class="brand">Condomínio Dinâmico</div><h1>Despesas administrativas</h1></div><div style="text-align:right;font-size:12px;color:#666">${new Date().toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" })}</div></div>
+      <div class="sub">Prédio ${esc(g.ed?.identificacao_interna ? g.ed.identificacao_interna + " · " : "")}${esc(g.ed?.nome ?? "")}</div>
+      <table><thead><tr><th>Data</th><th>Descrição / itens</th><th>Estado</th><th style="text-align:right">Total</th></tr></thead><tbody>${linhas}
+      <tr class="tot"><td colspan="3">Total do prédio</td><td class="vl" style="text-align:right">${eur(soma)}</td></tr></tbody></table>
+      <div class="foot">Documento de apoio ao lançamento no programa de faturação — Condomínio Dinâmico</div>
+      <script>window.onload=()=>{window.print()}</script>
+    </body></html>`);
+    w.document.close();
+  };
+
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-6xl">
       <div className="flex flex-wrap items-end gap-3">
@@ -82,12 +120,15 @@ function Page() {
           const open = aberto === g.id;
           return (
             <div key={g.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-              <button onClick={() => setAberto(open ? null : g.id)} className="flex w-full items-center gap-4 p-4 text-left hover:bg-muted/30">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 font-semibold text-primary">{g.ed?.identificacao_interna ?? <Building2 className="size-5" />}</div>
-                <div className="min-w-0 flex-1"><div className="truncate font-medium">{g.ed?.nome ?? "Prédio"}</div><div className="text-xs text-muted-foreground">{g.itens.length} lançamento(s){porPagar.length ? ` · ${porPagar.length} por pagar` : " · tudo pago"}</div></div>
-                <div className="text-right text-lg font-semibold tabular-nums">{eur(soma)}</div>
-                <ChevronDown className={`size-4 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
-              </button>
+              <div className="flex w-full items-center gap-2 p-2 pl-4 hover:bg-muted/30">
+                <button onClick={() => setAberto(open ? null : g.id)} className="flex min-w-0 flex-1 items-center gap-4 py-2 text-left">
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 font-semibold text-primary">{g.ed?.identificacao_interna ?? <Building2 className="size-5" />}</div>
+                  <div className="min-w-0 flex-1"><div className="truncate font-medium">{g.ed?.nome ?? "Prédio"}</div><div className="text-xs text-muted-foreground">{g.itens.length} lançamento(s){porPagar.length ? ` · ${porPagar.length} por pagar` : " · tudo pago"}</div></div>
+                  <div className="text-right text-lg font-semibold tabular-nums">{eur(soma)}</div>
+                  <ChevronDown className={`size-4 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
+                </button>
+                <Button size="icon" variant="outline" aria-label={`Imprimir despesas de ${g.ed?.nome ?? "prédio"}`} title="Imprimir despesas do prédio" onClick={() => imprimir(g)}><Printer className="size-4" /></Button>
+              </div>
               {open && <div className="border-t bg-muted/20 p-4 space-y-3">
                 <div className="flex justify-end gap-2">
                   <Button size="sm" variant="outline" onClick={() => setNovo(g.id)}><Plus className="size-4 mr-1" />Lançar</Button>
