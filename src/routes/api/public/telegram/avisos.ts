@@ -36,6 +36,11 @@ export const Route = createFileRoute("/api/public/telegram/avisos")({
         const { data: valid, error: rpcError } = await supabaseAdmin.rpc("check_avisos_token", { _token: token });
         if (rpcError || valid !== true) return new Response("Unauthorized", { status: 401 });
 
+        // Os horários do cron correm em UTC a 9h,10h,14h,15h; só envia às 10h/15h de Lisboa (muda com a hora de verão).
+        if (request.headers.get("x-hora-lisboa") === "1") {
+          const h = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Lisbon", hour: "2-digit", hour12: false }).format(new Date()));
+          if (h !== 10 && h !== 15) return Response.json({ ok: true, ignorado: "fora de horário de Lisboa" });
+        }
         if (request.headers.get("x-modo") === "lembretes") {
           const { sendDueReminders } = await import("@/lib/telegram-bot.server");
           return Response.json(await sendDueReminders());
