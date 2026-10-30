@@ -1,4 +1,5 @@
 import {
+  HorizontalPositionRelativeFrom, VerticalPositionRelativeFrom, TextWrappingType,
   AlignmentType, BorderStyle, Document, Footer, ImageRun, LevelFormat, Packer, PageBreak, Paragraph,
   ShadingType, Table, TableCell, TableRow, TextRun, WidthType,
 } from "docx";
@@ -56,18 +57,18 @@ function cell(t: string, w: number, o: { b?: boolean; fill?: string; c?: string;
 export async function descarregarProposta(p: Proposta) {
   const capa = new Uint8Array(await (await fetch(capaProposta)).arrayBuffer());
   const t = totais(p);
-  const cols = [6026, 1200, 1800];
+  const cols = [6526, 2500];
   const row = (c: string[], o: { b?: boolean; fill?: string; c?: string } = {}) =>
     new TableRow({ children: c.map((x, i) => cell(x, cols[i], { ...o, right: i > 0 })) });
   const tabela = new Table({
     width: { size: W, type: WidthType.DXA }, columnWidths: cols,
     rows: [
-      row(["Descrição", "Qtd.", "Subtotal"], { b: true, fill: TEAL, c: "FFFFFF" }),
-      ...linhas(p).map((x) => row([x.d, String(x.q), eur(x.q * x.u)])),
-      ...(p.limpeza ? [row([`Limpeza das partes comuns (${p.limpezaFreq || "a combinar"})`, "1", eur(t.limpeza)])] : []),
-      row(["Total sem IVA", "", eur(t.sem)], { b: true, fill: "EEF6F6" }),
-      row(["IVA (23%)", "", eur(t.iva)]),
-      row(["TOTAL MENSAL COM IVA", "", eur(t.com)], { b: true, fill: "D6ECEC" }),
+      row(["Descrição", "Qtd."], { b: true, fill: TEAL, c: "FFFFFF" }),
+      ...linhas(p).map((x) => row([x.d, String(x.q)])),
+      ...(p.limpeza ? [row([`Limpeza das partes comuns (${p.limpezaFreq || "a combinar"})`, eur(t.limpeza)])] : []),
+      row(["Total sem IVA", eur(t.sem)], { b: true, fill: "EEF6F6" }),
+      row(["IVA (23%)", eur(t.iva)]),
+      row(["TOTAL MENSAL COM IVA", eur(t.com)], { b: true, fill: "D6ECEC" }),
     ],
   });
   const hoje = new Date().toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Lisbon" });
@@ -84,9 +85,11 @@ export async function descarregarProposta(p: Proposta) {
     numbering: { config: [{ reference: "b", levels: [{ level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 300 } } } }] }] },
     sections: [{
       properties: { page: { margin: { top: 1134, bottom: 1134, left: 1440, right: 1440 } }, titlePage: true },
-      footers: { default: footer, first: new Footer({ children: [new Paragraph({})] }) },
+      footers: { default: footer, first: new Footer({ children: [new Paragraph({ children: [new TextRun({ text: p.numero ? `Proposta n.º ${p.numero}` : "", color: "E7E6E6", size: 20 })] })] }) },
       children: [
-        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 400 }, children: [new ImageRun({ type: "png", data: capa, transformation: { width: 602, height: 903 }, altText: { title: "Capa", description: "Capa da proposta", name: "capa" } })] }),
+        new Paragraph({ children: [new ImageRun({ type: "png", data: capa, transformation: { width: 794, height: 1123 }, floating: { horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, offset: 0 }, verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 0 }, behindDocument: true, wrap: { type: TextWrappingType.NONE } }, altText: { title: "Capa", description: "Capa da proposta", name: "capa" } })] }),
+        new Paragraph({ spacing: { before: 9600, after: 240 }, indent: { firstLine: 708 }, children: [new TextRun({ text: p.nome || "", color: "E7E6E6", size: 28 })] }),
+        new Paragraph({ indent: { left: 2832 }, children: [new TextRun({ text: p.morada || "", color: "E7E6E6", size: 28 })] }),
         new Paragraph({ children: [new PageBreak()] }),
 
         H("Apresentação"),
@@ -94,7 +97,7 @@ export async function descarregarProposta(p: Proposta) {
         P("É com o maior prazer que a equipa CONDOMÍNIO DINÂMICO – Administração de Condomínios, Lda., NIPC 513 259 678, com sede na Praça D. Paio Peres Correia, n.º 5, 2910-627 Setúbal, apresenta a presente proposta para a Administração e Gestão do Condomínio."),
         P("Procuramos satisfazer as necessidades de quem quer uma gestão profissional, próxima e transparente do seu imóvel: elaboração de orçamentos e balancetes, cobrança de quotas, acompanhamento da limpeza das partes comuns, pequenas reparações e resolução dos problemas do dia a dia."),
         P("Está a entregar a gestão do seu condomínio a alguém com rosto, que se pauta pelo profissionalismo e pela honestidade. Não se preocupe com nada — nós tratamos."),
-        P("Atendimento: Praça D. Paio Peres Correia, n.º 5, Setúbal — terça a sexta, 09h–13h e 15h–18h · Tel. 265 754 179 / 961 106 805 · geral.dinamico@gmail.com"),
+        P("Atendimento: Praça D. Paio Peres Correia, n.º 5, Setúbal — terça a sexta, 10h–13h e 15h–18h · Tel. 265 754 179 | 965 425 802 | 961 106 805 · geral.dinamico@gmail.com"),
 
         H("Caracterização do edifício"),
         new Table({ width: { size: W, type: WidthType.DXA }, columnWidths: [4513, 4513], rows: [
